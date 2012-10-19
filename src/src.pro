@@ -1,0 +1,26 @@
+TEMPLATE = lib
+
+LIBS += -L/usr/local/lib/ -lopencv_core -lopencv_highgui -lopencv_imgproc -lv4lconvert
+INCLUDEPATH += /usr/local/include/opencv-2.4.2
+DEPENDPATH += /usr/local/include/opencv-2.4.2
+
+TARGET = QeekVision
+VERSION = 0.1.0
+
+HEADERS += \
+    settings.h \
+    Defs.h \
+    configurationengine.h \
+    camerathread.h
+
+SOURCES += \
+    settings.cpp \
+    configurationengine.cpp \
+    camerathread.cpp
+
+RESOURCES += \
+    resources.qrc
+
+FORMS += \
+    settings.ui
+
