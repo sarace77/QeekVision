@@ -1,4 +1,5 @@
 TEMPLATE = subdirs
 
-SUBDIRS += qeekdemo
+SUBDIRS += qeekdemo \
+    bgSubtract
 

@@ -58,8 +58,10 @@ float CameraThread::getFPS() {
 }
 
 Mat CameraThread::getFrame() {
-    if(_cvMatbuffer.isEmpty())
-        qFatal("No Available frame in capture bufffer!");
+    if(_cvMatbuffer.isEmpty()) {
+        qWarning() << "[CAMERA_THREAD] << getFrame() - No Available frame in capture buffer!";
+        return Mat(getHeight(), getWidth(), CV_8UC3, Scalar(0,0,0));
+    }
     return _cvMatbuffer.dequeue().clone();
 }
 
