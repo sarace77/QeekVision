@@ -11,12 +11,14 @@ HEADERS += \
     settings.h \
     Defs.h \
     configurationengine.h \
-    camerathread.h
+    camerathread.h \
+    thermography.h
 
 SOURCES += \
     settings.cpp \
     configurationengine.cpp \
-    camerathread.cpp
+    camerathread.cpp \
+    thermography.cpp
 
 RESOURCES += \
     resources.qrc

@@ -19,7 +19,7 @@ private slots:
     void showFrame();
 
 public:
-    explicit QeekDemoWindow(QWidget *parent = 0);
+    QeekDemoWindow(QWidget *parent = 0);
     ~QeekDemoWindow();
     
 };

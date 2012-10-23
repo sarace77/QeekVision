@@ -10,7 +10,7 @@
 #endif //_DEV_FILTER
 
 #ifndef _STD_FRM_HGHT
-#define _STD_FRM_HGHT 480;
+#define _STD_FRM_HGHT 480
 #endif //_STD_FRM_HGHT
 
 #ifndef _STD_FRM_WDTH
