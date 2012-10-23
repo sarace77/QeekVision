@@ -7,42 +7,52 @@
 #include <sys/mman.h>
 
 #include <QDebug>
-#include <QTime>
 
 #include <opencv/highgui.h>
 
 CameraThread::CameraThread(QObject *parent) : QThread(parent) {
+    /// Configuration Engine Instance and signals connection
     _configEngine = new ConfigurationEngine();
     connect(_configEngine, SIGNAL(availableConfiguration()), this, SLOT(configure()));
-    _deviceName = "";
+
+    /// Cleaning frame format;
     CLEAR(_fmt);
+
+    /// Cleaning Capture Device Name and File Descriptor
+    _deviceName = "";
     _fd = -1;
+
+    /// Cleaning FPS counter
     _fps = 0;
-    /* Timeout. */
+
+    /// Buffer select() Timeout Init
     _tv.tv_sec = 2;
     _tv.tv_usec = 0;
 
+    /// V4L Buffer Type init
+    _type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+
+
+    /// ToolBar Settings
     _startAction = new QAction(QIcon(":/icons/start.png"), "Start", this);
     _startAction->setToolTip("Start Capture Stream");
     _startAction->setShortcut(Qt::Key_Space);
     _startAction->setEnabled(false);
-
     _stopAction = new QAction(QIcon(":/icons/stop.png"), "Stop", this);
     _stopAction->setToolTip("Stop Capture Stream");
     _stopAction->setShortcut(Qt::Key_Space);
     _stopAction->setEnabled(false);
-
     _settingsAction = new QAction(QIcon(":/icons/settings.png"), "Stop", this);
     _settingsAction->setToolTip("Open Configuration Dialog");
     _settingsAction->setShortcut(Qt::CTRL+Qt::Key_T);
     _settingsAction->setEnabled(true);
-
     _threadToolBar = new QToolBar("Thread Commands");
     _threadToolBar->setObjectName("threadToolBar");
     _threadToolBar->addAction(_startAction);
     _threadToolBar->addAction(_stopAction);
     _threadToolBar->addAction(_settingsAction);
 
+    /// ToolBar signals connections
     connect(_startAction, SIGNAL(triggered()), this, SLOT(start()));
     connect(_stopAction, SIGNAL(triggered()), this, SLOT(stop()));
     connect(_settingsAction, SIGNAL(triggered()), _configEngine, SLOT(configRequest()));
@@ -112,18 +122,34 @@ void CameraThread::configure() {
     }
 }
 
+
+void CameraThread::openCaptureDevice() {
+    /// Open Capture Device
+    _fd = open(_deviceName.toAscii().constData(), O_RDWR | O_NONBLOCK, 0);
+    /// Check if is it open
+    if (_fd < 0 )
+        qFatal("[CAMERA_THREAD] - openCaptureDevice() - Unable to open device!");
+    /// Get Caèture Device Frame Format configuration
+    Settings::qioctl(_fd, VIDIOC_G_FMT, &_fmt, "CameraThread::openCaptureDevice()");
+
+    /// Set V4L frame buffer data conversion
+    _v4lconvert_data = v4lconvert_create(_fd);
+    if (_v4lconvert_data == NULL)
+        qWarning("[CAMERA_THREAD] - openCaptureDevice() - v4lconvert_create() returns error");
+    if (v4lconvert_try_format(_v4lconvert_data, &_fmt, &_src_fmt) != 0)
+        qWarning("[CAMERA_THREAD] - openCaptureDevice() - v4lconvert_try_format() returns error");
+}
+
 int CameraThread::exec() {
     char header [50];
     sprintf(header,"P6\n%d %d 255\n",_fmt.fmt.pix.width,_fmt.fmt.pix.height);
-    static unsigned char *dst_buf;
-    QTime myTimer;
+    unsigned char *dst_buf;
     qDebug() << "[CAMERA_THREAD] - exec() - Started";
     while(true){
         myTimer.start();
         do {
             FD_ZERO(&_fds);
             FD_SET(_fd, &_fds);
-
             _r = select(_fd + 1, &_fds, NULL, NULL, &_tv);
         } while ((_r == -1 && (errno = EINTR)));
         if (_r == -1) {
@@ -162,10 +188,11 @@ int CameraThread::exec() {
             cvtColor(newFrame, newFrame, CV_YUV2RGB_Y422);
             break;
         }
-            _cvMatbuffer.enqueue(newFrame.clone());
+            _cvMatbuffer.enqueue(newFrame);
             emit availableFrame();
         }
         free(asil);
+        free(dst_buf);
         delete qq;
         Settings::qioctl(_fd, VIDIOC_QBUF, &_buf, "CameraThread::exec()");
         _fps = 1000.0/myTimer.elapsed();
@@ -174,25 +201,24 @@ int CameraThread::exec() {
 }
 
 void CameraThread::run() {
+    /// Enabling/Disabling Toolbar Buttons
     _startAction->setEnabled(false);
     _stopAction->setEnabled(true);
     _settingsAction->setEnabled(false);
-    _fd = open(_deviceName.toAscii().constData(), O_RDWR | O_NONBLOCK, 0);
-    if (_fd < 0 )
-        qFatal("[CAMERA_THREAD] - run() - Unable to open device!");
-    Settings::qioctl(_fd, VIDIOC_G_FMT, &_fmt, "CameraThread::run()");
-    _v4lconvert_data = v4lconvert_create(_fd);
-    if (_v4lconvert_data == NULL)
-        qWarning("[CAMERA_THREAD] - run() - v4lconvert_create() returns error");
-    if (v4lconvert_try_format(_v4lconvert_data, &_fmt, &_src_fmt) != 0)
-        qWarning("[CAMERA_THREAD] - run() - v4lconvert_try_format() returns error");
 
+    /// Opening Capture Device
+    openCaptureDevice();
+
+
+    /// Memory Mapping Init
+    /// V4L Buffer Request Struct init
     CLEAR(_req);
-    _req.count = 2;
-    //_req.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    _req.count = _REQ_BUFF_COUNT;
     _req.type = _fmt.type;
     _req.memory = V4L2_MEMORY_MMAP;
+    /// Setting Buffer Type
     Settings::qioctl(_fd, VIDIOC_REQBUFS, &_req, "CameraThread::run()");
+    /// V4L Buffer Allocation
     _buffers = (Buffer *)calloc(_req.count, sizeof(*_buffers));
     for (_n_buffers = 0; _n_buffers < _req.count; ++_n_buffers) {
         CLEAR(_buf);
@@ -208,6 +234,8 @@ void CameraThread::run() {
             qFatal("[CAMERA_THREAD] - run() - mmap() returns error!");
         }
     }
+
+    /// Video Buffer Enable
     for (quint8 i = 0; i < _n_buffers; ++i) {
         CLEAR(_buf);
         _buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
@@ -215,8 +243,11 @@ void CameraThread::run() {
         _buf.index = i;
         Settings::qioctl(_fd, VIDIOC_QBUF, &_buf, "CameraThread::run()");
     }
-    _type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+
+    /// Enabling Video Capture
     Settings::qioctl(_fd, VIDIOC_STREAMON, &_type, "CameraThread::run()");
+
+    /// Launching main loop
     exec();
 }
 

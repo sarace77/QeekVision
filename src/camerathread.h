@@ -11,6 +11,7 @@
 #include <QMutex>
 #include <QQueue>
 #include <QThread>
+#include <QTime>
 #include <QToolBar>
 
 #include "configurationengine.h"
@@ -29,31 +30,45 @@ class CameraThread : public QThread
     Q_OBJECT
 
 private:
+    /// ToolBar Widgets
     QToolBar    *_threadToolBar;
     QAction     *_settingsAction, *_startAction, *_stopAction;
 
-private:
+    /// Configuration Engine
     ConfigurationEngine *_configEngine;
 
-    QString     _deviceName;
+    /// Capture Device Name and File descriptor;
+    QString _deviceName;
+    int     _fd;
 
-    struct v4l2_buffer              _buf;
-    Buffer                          *_buffers;
-    struct v4lconvert_data          *_v4lconvert_data;
-    int                             _fd, _r;
-    fd_set                          _fds;
-    struct v4l2_format              _fmt;
-    unsigned int                    _n_buffers;
-    struct v4l2_requestbuffers      _req;
-    struct v4l2_format              _src_fmt;
-    struct timeval                  _tv;
-    enum v4l2_buf_type              _type;
+    /// V4L Support Structures
+    enum   v4l2_buf_type        _type;
+    struct v4l2_buffer          _buf;
+    struct v4l2_format          _fmt, _src_fmt;
+    struct v4l2_requestbuffers  _req;
+    struct v4lconvert_data      *_v4lconvert_data;
 
+    /// Internal Buffer for Memory Mapping
+    Buffer          *_buffers;
+    unsigned int    _n_buffers;
+
+    /// select() support data
+    int             _r;
+    fd_set          _fds;
+    struct timeval  _tv;
+
+    /// Internal Frame Buffer
     QMutex       _mutex;
     QQueue<Mat > _cvMatbuffer;
 
+    /// Frame Rate Calculator support data
     float _fps;
+    QTime myTimer;
 
+    /// Used to Open Capture Device and set V4l Conversion format
+    void openCaptureDevice();
+
+protected:
     int exec();
     void run();
 

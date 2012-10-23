@@ -1,9 +1,11 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include <QFileDialog>
 #include <QMainWindow>
 #include "camerathread.h"
 #include "thermography.h"
+
 
 namespace Ui {
 class MainWindow;
@@ -18,6 +20,11 @@ private:
     CameraThread *capture3ad;
     Thermography *process3ad;
 
+    QFileDialog *fDialog;
+
+private slots:
+    void on_actionOpen_triggered();
+    void openFile();
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
