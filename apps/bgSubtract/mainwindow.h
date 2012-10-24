@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include "camerathread.h"
+#include "bgsubtractor.h"
 
 #include <opencv2/opencv.hpp>
 
@@ -19,21 +20,17 @@ class MainWindow : public QMainWindow
 
 private:
     Ui::MainWindow *ui;
-    CameraThread * capture3ad;
-
-    Mat srcFrame, bgFrame, fgFrame;
-    BackgroundSubtractorMOG2 *bg;
-    RNG *rng;
+    CameraThread *capture3ad;
+    BGSubtractor *process3ad;
 
 private slots:
     void processFrame();
-    void initBG();
+    void showFrame();
 
 public:
-    explicit MainWindow(QWidget *parent = 0);
+    MainWindow(QWidget *parent = 0);
     ~MainWindow();
     
-    bool compareBlobs(vector<Point > firstBlob, vector<Point > secondBlob);
 };
 
 #endif // MAINWINDOW_H

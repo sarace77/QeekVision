@@ -20,6 +20,12 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),  ui(new Ui::MainW
     fDialog->setDirectory(QString("//"));
     fDialog->setNameFilter("All Images files (*.bmp *.jpg *.png)");
     connect(fDialog, SIGNAL(accepted()), this, SLOT(openFile()));
+    if(process3ad->hasToolBar()) {
+        addToolBar(process3ad->toolBar());
+        this->setMinimumWidth(capture3ad->toolBar()->width() + process3ad->toolBar()->width());
+    } else {
+        this->setMinimumWidth(capture3ad->toolBar()->width());
+    }
 }
 
 MainWindow::~MainWindow()

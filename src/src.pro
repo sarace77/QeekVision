@@ -1,6 +1,8 @@
 TEMPLATE = lib
 
-LIBS += -L/usr/local/lib/ -lopencv_core -lopencv_highgui -lopencv_imgproc -lv4lconvert
+LIBS += -L/usr/local/lib/
+LIBS += -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_video
+LIBS += -lv4lconvert
 INCLUDEPATH += /usr/local/include/opencv-2.4.2
 DEPENDPATH += /usr/local/include/opencv-2.4.2
 
@@ -14,7 +16,8 @@ HEADERS += \
     v4lcamera.h \
     v4lconfigurationengine.h \
     v4lsettings.h \
-    processthread.h
+    processthread.h \
+    bgsubtractor.h
 
 SOURCES += \
     camerathread.cpp \
@@ -22,7 +25,8 @@ SOURCES += \
     v4lcamera.cpp \
     v4lconfigurationengine.cpp \
     v4lsettings.cpp \
-    processthread.cpp
+    processthread.cpp \
+    bgsubtractor.cpp
 
 RESOURCES += \
     resources.qrc

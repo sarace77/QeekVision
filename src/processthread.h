@@ -6,6 +6,7 @@
 #include <QMutex>
 #include <QQueue>
 #include <QThread>
+#include <QToolBar>
 
 using namespace cv;
 using namespace std;
@@ -21,6 +22,9 @@ protected:
 
 public:
     ProcessThread(QObject *parent = 0);
+
+    virtual bool hasToolBar() = 0;
+    virtual QToolBar *toolBar() = 0;
 
 public slots:
     Mat dequeue();

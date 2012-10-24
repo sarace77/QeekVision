@@ -32,8 +32,8 @@ CameraThread::CameraThread(QObject *parent) : QThread(parent) {
     _threadToolBar->addAction(_stopAction);
     _threadToolBar->addAction(_settingsAction);
     _threadToolBar->addSeparator();
-    _threadToolBar->addWidget(_subsystemLabel);
-    _threadToolBar->addWidget(_subsystemComboBox);
+//    _threadToolBar->addWidget(_subsystemLabel);
+//    _threadToolBar->addWidget(_subsystemComboBox);
 
     /// ToolBar signals connections
     connect(_startAction, SIGNAL(triggered()), this, SLOT(start()));
