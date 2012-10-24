@@ -32,8 +32,7 @@ CameraThread::CameraThread(QObject *parent) : QThread(parent) {
     connect(_stopAction, SIGNAL(triggered()), this, SLOT(stop()));
 }
 
-CameraThread::~CameraThread(){
-}
+CameraThread::~CameraThread(){ }
 
 float CameraThread::getFPS() {
     return _fps;
