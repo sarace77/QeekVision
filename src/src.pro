@@ -8,23 +8,23 @@ TARGET = QeekVision
 VERSION = 0.1.0
 
 HEADERS += \
-    settings.h \
     Defs.h \
     camerathread.h \
     thermography.h \
     v4lcamera.h \
-    v4lconfigurationengine.h
+    v4lconfigurationengine.h \
+    v4lsettings.h
 
 SOURCES += \
-    settings.cpp \
     camerathread.cpp \
     thermography.cpp \
     v4lcamera.cpp \
-    v4lconfigurationengine.cpp
+    v4lconfigurationengine.cpp \
+    v4lsettings.cpp
 
 RESOURCES += \
     resources.qrc
 
 FORMS += \
-    settings.ui
+    v4lsettings.ui
 

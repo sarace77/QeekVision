@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Settings</class>
- <widget class="QMainWindow" name="Settings">
+ <class>V4LSettings</class>
+ <widget class="QMainWindow" name="V4LSettings">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -321,24 +321,8 @@
  <connections>
   <connection>
    <sender>buttonBox</sender>
-   <signal>accepted()</signal>
-   <receiver>Settings</receiver>
-   <slot>close()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>420</x>
-     <y>553</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>259</x>
-     <y>299</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>buttonBox</sender>
-   <signal>rejected()</signal>
-   <receiver>Settings</receiver>
+   <signal>clicked(QAbstractButton*)</signal>
+   <receiver>V4LSettings</receiver>
    <slot>close()</slot>
    <hints>
     <hint type="sourcelabel">

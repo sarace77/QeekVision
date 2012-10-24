@@ -69,7 +69,7 @@ int V4LCamera::exec() {
         CLEAR(_buf);
         _buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
         _buf.memory = V4L2_MEMORY_MMAP;
-        Settings::qioctl(_fd, VIDIOC_DQBUF, &_buf, "V4LCamera::exec()");
+        V4LSettings::qioctl(_fd, VIDIOC_DQBUF, &_buf, "V4LCamera::exec()");
 
         dst_buf = (unsigned char*)malloc(_fmt.fmt.pix.sizeimage);
         if (v4lconvert_convert(_v4lconvert_data, &_src_fmt, &_fmt,
@@ -105,7 +105,7 @@ int V4LCamera::exec() {
         free(asil);
         free(dst_buf);
         delete qq;
-        Settings::qioctl(_fd, VIDIOC_QBUF, &_buf, "V4LCamera::exec()");
+        V4LSettings::qioctl(_fd, VIDIOC_QBUF, &_buf, "V4LCamera::exec()");
         _fps = 1000.0/myTimer.elapsed();
     }
     return 0;
@@ -135,7 +135,7 @@ void V4LCamera::openCaptureDevice() {
     if (_fd < 0 )
         qFatal("[CAMERA_THREAD::V4L_CAMERA] - openCaptureDevice() - Unable to open device!");
     /// Get Caèture Device Frame Format configuration
-    Settings::qioctl(_fd, VIDIOC_G_FMT, &_fmt, "V4LCamera::openCaptureDevice()");
+    V4LSettings::qioctl(_fd, VIDIOC_G_FMT, &_fmt, "V4LCamera::openCaptureDevice()");
 
     /// Set V4L frame buffer data conversion
     _v4lconvert_data = v4lconvert_create(_fd);
@@ -162,7 +162,7 @@ void V4LCamera::run() {
     _req.type = _fmt.type;
     _req.memory = V4L2_MEMORY_MMAP;
     /// Setting Buffer Type
-    Settings::qioctl(_fd, VIDIOC_REQBUFS, &_req, "V4LCamera::run()");
+    V4LSettings::qioctl(_fd, VIDIOC_REQBUFS, &_req, "V4LCamera::run()");
     /// V4L Buffer Allocation
     _buffers = (Buffer *)calloc(_req.count, sizeof(*_buffers));
     for (_n_buffers = 0; _n_buffers < _req.count; ++_n_buffers) {
@@ -170,7 +170,7 @@ void V4LCamera::run() {
         _buf.type        = V4L2_BUF_TYPE_VIDEO_CAPTURE;
         _buf.memory      = V4L2_MEMORY_MMAP;
         _buf.index       = _n_buffers;
-        Settings::qioctl(_fd, VIDIOC_QUERYBUF, &_buf, "V4LCamera::run()");
+        V4LSettings::qioctl(_fd, VIDIOC_QUERYBUF, &_buf, "V4LCamera::run()");
         _buffers[_n_buffers].length = _buf.length;
         _buffers[_n_buffers].start = mmap(NULL, _buf.length,
                                             PROT_READ | PROT_WRITE, MAP_SHARED,
@@ -186,11 +186,11 @@ void V4LCamera::run() {
         _buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
         _buf.memory = V4L2_MEMORY_MMAP;
         _buf.index = i;
-        Settings::qioctl(_fd, VIDIOC_QBUF, &_buf, "V4LCamera::run()");
+        V4LSettings::qioctl(_fd, VIDIOC_QBUF, &_buf, "V4LCamera::run()");
     }
 
     /// Enabling Video Capture
-    Settings::qioctl(_fd, VIDIOC_STREAMON, &_type, "V4LCamera::run()");
+    V4LSettings::qioctl(_fd, VIDIOC_STREAMON, &_type, "V4LCamera::run()");
 
     /// Launching main loop
     exec();
@@ -199,7 +199,7 @@ void V4LCamera::run() {
 void V4LCamera::stop() {
     qDebug() << "[CAMERA_THREAD::V4L_CAMERA] - stop() - Stopping";
     _type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-    Settings::qioctl(_fd, VIDIOC_STREAMOFF, &_type, "V4LCamera::stop()");
+    V4LSettings::qioctl(_fd, VIDIOC_STREAMOFF, &_type, "V4LCamera::stop()");
     for (unsigned int i = 0; i < _n_buffers; ++i)
            munmap(_buffers[i].start, _buffers[i].length);
     close(_fd);

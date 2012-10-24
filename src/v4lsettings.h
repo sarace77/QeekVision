@@ -1,7 +1,5 @@
-#ifndef SETTINGS_H
-#define SETTINGS_H
-
-#include "Defs.h"
+#ifndef V4LSETTINGS_H
+#define V4LSETTINGS_H
 
 #include <QMainWindow>
 
@@ -9,20 +7,22 @@
 #include <libv4lconvert.h>
 #include <linux/videodev2.h>
 
+#include "Defs.h"
+
 #ifndef CLEAR
 #define CLEAR(x) memset(&x, 0, sizeof(x))
 #endif //CLEAR
 
 namespace Ui {
-class Settings;
+class V4LSettings;
 }
 
-class Settings : public QMainWindow
+class V4LSettings : public QMainWindow
 {
     Q_OBJECT
-private:
-    Ui::Settings *ui;
 
+private:
+    Ui::V4LSettings *ui;
     QStringList _devicesList, _devicesNames;
     struct v4l2_capability _querycap;
     struct v4l2_format _format;
@@ -48,12 +48,12 @@ private slots:
     void signalRejected();
 
 public:
-    explicit Settings(QWidget *parent = 0);
-    ~Settings();
+    explicit V4LSettings(QWidget *parent = 0);
+    ~V4LSettings();
 
     struct v4l2_format getV4L2Config();
     QString getV4L2DeviceName();
-    
+
     static QString decode4CC(__u32 code);
     static __u32 encode4CC(QString code);
     static QString decodeKernelVersion(__u32 code);
@@ -66,4 +66,4 @@ signals:
     void rejected();
 };
 
-#endif // SETTINGS_H
+#endif // V4LSETTINGS_H

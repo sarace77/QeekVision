@@ -5,7 +5,7 @@
 #include <QRegExp>
 
 V4LConfigurationEngine::V4LConfigurationEngine(QObject *parent) : QObject(parent) {
-    _settingsDialog = new Settings();
+    _settingsDialog = new V4LSettings();
     connect(_settingsDialog, SIGNAL(accepted()), this, SLOT(settingsAccepted()));
     connect(_settingsDialog, SIGNAL(rejected()), this, SLOT(settingsRejected()));
 }
@@ -46,7 +46,7 @@ void V4LConfigurationEngine::configurationQuery(struct v4l2_format config) {
         _settingsDialog->show();
         return;
     }
-    if (Settings::qioctl(captureDevice.handle(), VIDIOC_TRY_FMT, &config, "V4LConfigurationEngine::configurationQuery()") != 0) {
+    if (V4LSettings::qioctl(captureDevice.handle(), VIDIOC_TRY_FMT, &config, "V4LConfigurationEngine::configurationQuery()") != 0) {
         qWarning() << "[V4L_CONFIGURATION_ENGINE] - configurationQuery() - Invalid Configuration ";
         _settingsDialog->show();
         return;
@@ -91,9 +91,9 @@ struct v4l2_format V4LConfigurationEngine::encodeConfigurationStringList(QString
         return config;
     }
     config.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-    if (Settings::qioctl(captureDevice.handle(), VIDIOC_G_FMT, &config, "V4LConfigurationEngine::encodeConfigurationStringList()") != 0) {
+    if (V4LSettings::qioctl(captureDevice.handle(), VIDIOC_G_FMT, &config, "V4LConfigurationEngine::encodeConfigurationStringList()") != 0) {
         config.type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
-        if (Settings::qioctl(captureDevice.handle(), VIDIOC_G_FMT, &config, "V4LConfigurationEngine::encodeConfigurationStringList()") != 0) {
+        if (V4LSettings::qioctl(captureDevice.handle(), VIDIOC_G_FMT, &config, "V4LConfigurationEngine::encodeConfigurationStringList()") != 0) {
             CLEAR(config);
             return config;
         }
@@ -103,7 +103,7 @@ struct v4l2_format V4LConfigurationEngine::encodeConfigurationStringList(QString
             tmpConfig = config;
             tmpConfig.fmt.pix.width = sConfig.at(i).toLower().split(QChar('x')).at(0).toUInt();
             tmpConfig.fmt.pix.height = sConfig.at(i).toLower().split(QChar('x')).at(0).toUInt();
-            if (Settings::qioctl(captureDevice.handle(), VIDIOC_TRY_FMT, &tmpConfig, "V4LConfigurationEngine::encodeConfigurationStringList()") != 0)
+            if (V4LSettings::qioctl(captureDevice.handle(), VIDIOC_TRY_FMT, &tmpConfig, "V4LConfigurationEngine::encodeConfigurationStringList()") != 0)
                 qWarning() << "[V4L_CONFIGURATION_ENGINE] - encodeConfigurationStringList() - Invalid or unsupported frame Size";
             else
                 config = tmpConfig;

@@ -7,7 +7,7 @@
 
 #include "camerathread.h"
 #include "v4lconfigurationengine.h"
-#include "settings.h"
+#include "v4lsettings.h"
 
 
 class V4LCamera : public CameraThread

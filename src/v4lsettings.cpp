@@ -1,5 +1,5 @@
-#include "settings.h"
-#include "ui_settings.h"
+#include "v4lsettings.h"
+#include "ui_v4lsettings.h"
 
 #include <QDebug>
 #include <QDir>
@@ -13,7 +13,7 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 
-Settings::Settings(QWidget *parent) : QMainWindow(parent), ui(new Ui::Settings) {
+V4LSettings::V4LSettings(QWidget *parent) : QMainWindow(parent), ui(new Ui::V4LSettings) {
     ui->setupUi(this);
     CLEAR(_format);
     _devicesList = QDir(_DEV_DIR, _DEV_FILTER, QDir::Name, QDir::AllEntries|QDir::System).entryList();
@@ -23,7 +23,7 @@ Settings::Settings(QWidget *parent) : QMainWindow(parent), ui(new Ui::Settings) 
 
         /* Query Device for Names */
         CLEAR(_querycap);
-        if (qioctl(fd, VIDIOC_QUERYCAP, &_querycap, "Settings::Settings()") == 0) {
+        if (qioctl(fd, VIDIOC_QUERYCAP, &_querycap, "V4LSettings::V4LSettings()") == 0) {
             _devicesNames << QString((char *) _querycap.card);
         } else {
             _devicesNames << _devicesList.at(i);
@@ -38,31 +38,32 @@ Settings::Settings(QWidget *parent) : QMainWindow(parent), ui(new Ui::Settings) 
     connect(ui->buttonBox, SIGNAL(rejected()), this, SLOT(signalRejected()));
 }
 
-Settings::~Settings() {
+V4LSettings::~V4LSettings()
+{
     delete ui;
 }
 
-struct v4l2_format Settings::getV4L2Config() {
+struct v4l2_format V4LSettings::getV4L2Config() {
     return _format;
 }
 
-QString Settings::getV4L2DeviceName() {
+QString V4LSettings::getV4L2DeviceName() {
     if (_devicesList.count() && (ui->device->currentIndex() >= 0))
         return QString(_DEV_DIR) + QString("/") + _devicesList.at(ui->device->currentIndex());
     return QString("");
 }
 
-void Settings::on_captureMode_currentIndexChanged(int value) {
+void V4LSettings::on_captureMode_currentIndexChanged(int value) {
     tryVideoMode();
 }
 
-void Settings::on_device_currentIndexChanged(int value) {
+void V4LSettings::on_device_currentIndexChanged(int value) {
     /* Open Device */
     int fd = open(_devicesList.at(value));
     /* Query for Capablities */
     QString sInfo = QString("Device: /dev/") + _devicesList.at(value);
     CLEAR(_querycap);
-    if (qioctl(fd, VIDIOC_QUERYCAP, &_querycap, "Settings::on_device_currentIndexChanged()") == 0) {
+    if (qioctl(fd, VIDIOC_QUERYCAP, &_querycap, "V4LSettings::on_device_currentIndexChanged()") == 0) {
         sInfo += " (" + QString((char *) _querycap.driver);
         QString sVersion = QString("%1").arg(_querycap.version);
         sInfo += " v" + sVersion.mid(0,2) + "." + sVersion.mid(2,2) + "." + sVersion.mid(4,2);
@@ -74,7 +75,7 @@ void Settings::on_device_currentIndexChanged(int value) {
     supportedFmt.type = V4L2_CAP_VIDEO_CAPTURE;
     if (ui->pixelformat->count() > 0)
         ui->pixelformat->clear();
-    while (qioctl(fd, VIDIOC_ENUM_FMT, &supportedFmt, "Settings::on_device_currentIndexChanged()") >= 0) {
+    while (qioctl(fd, VIDIOC_ENUM_FMT, &supportedFmt, "V4LSettings::on_device_currentIndexChanged()") >= 0) {
         ui->pixelformat->addItem(QString((char *) supportedFmt.description));
         _supported4CC << supportedFmt.pixelformat;
         supportedFmt.index++;
@@ -87,7 +88,7 @@ void Settings::on_device_currentIndexChanged(int value) {
     ui->statusbar->showMessage(sInfo, 30000);
 }
 
-void Settings::on_pixelformat_currentIndexChanged(int value) {
+void V4LSettings::on_pixelformat_currentIndexChanged(int value) {
     if (ui->pixelformat->count() > 0) {
         ui->frameSize->clear();
         /* Open Device */
@@ -95,7 +96,7 @@ void Settings::on_pixelformat_currentIndexChanged(int value) {
         struct v4l2_frmsizeenum frmsize;
         CLEAR(frmsize);
         frmsize.pixel_format = _supported4CC.at(ui->pixelformat->currentIndex());
-        while(qioctl(fd, VIDIOC_ENUM_FRAMESIZES, &frmsize, "Settings::on_pixelformat_currentIndexChanged()") >= 0) {
+        while(qioctl(fd, VIDIOC_ENUM_FRAMESIZES, &frmsize, "V4LSettings::on_pixelformat_currentIndexChanged()") >= 0) {
             if(ui->frameSize->count() > 0) {
                 QStringList tmp = ui->frameSize->itemText(ui->frameSize->count() - 1).split(QChar('x'));
                 if (tmp.at(0).toDouble() < frmsize.discrete.width) {
@@ -118,65 +119,65 @@ void Settings::on_pixelformat_currentIndexChanged(int value) {
     }
 }
 
-int Settings::open(QString sFileName) {
+int V4LSettings::open(QString sFileName) {
     QString filename = QString(_DEV_DIR) + QString("/") + sFileName;
     int __fd = ::open(filename.toAscii().constData(), O_RDWR | O_NONBLOCK, 0);
     if (__fd < 0) {
-        qFatal("[SETTINGS] - settings() - Error opening device");
+        qFatal("[V4L_SETTINGS] - settings() - Error opening device");
     }
     return __fd;
 }
 
-void Settings::signalAccepted() {
+void V4LSettings::signalAccepted() {
     CLEAR(_format);
     if (_captureModes.count() > 0) {
         struct v4l2_format fmt;
         /* Open Device */
         int fd = open(_devicesList.at(ui->device->currentIndex()));
         _format.type = _captureModes.at(ui->captureMode->currentIndex());
-        if (qioctl(fd, VIDIOC_G_FMT, &_format, "Settings::signalAccepted()") == 0) {
+        if (qioctl(fd, VIDIOC_G_FMT, &_format, "V4LSettings::signalAccepted()") == 0) {
             if (_colorSpace.count() && (ui->colorSpace->currentIndex() > -1) )
                 _format.fmt.pix.colorspace= _colorSpace.at(ui->colorSpace->currentIndex());
             fmt = _format;
-            if (qioctl(fd, VIDIOC_S_FMT, &fmt, "Settings::signalAccepted()") != 0)
-                qWarning("[SETTINGS] - signalAccepted() - Unable to set selected colorspace");
+            if (qioctl(fd, VIDIOC_S_FMT, &fmt, "V4LSettings::signalAccepted()") != 0)
+                qWarning("[V4L_SETTINGS] - signalAccepted() - Unable to set selected colorspace");
             if (_field.count() && (ui->videoMode->currentIndex() > -1) )
                 _format.fmt.pix.field = _field.at(ui->videoMode->currentIndex());
             fmt = _format;
-            if (qioctl(fd, VIDIOC_S_FMT, &fmt, "Settings::signalAccepted()") != 0)
-                qWarning("[SETTINGS] - signalAccepted() - Unable to set selected Video Mode");
+            if (qioctl(fd, VIDIOC_S_FMT, &fmt, "V4LSettings::signalAccepted()") != 0)
+                qWarning("[V4L_SETTINGS] - signalAccepted() - Unable to set selected Video Mode");
             if (ui->frameSize->count()) {
                 QStringList res = ui->frameSize->currentText().split(QChar('x'));
                 _format.fmt.pix.height = res.at(1).toUInt();
                 _format.fmt.pix.width = res.at(0).toUInt();
             }
             fmt = _format;
-            if (qioctl(fd, VIDIOC_S_FMT, &fmt, "Settings::signalAccepted()") != 0)
-                qWarning("[SETTINGS] - signalAccepted() - Unable to set selected framesize");
-            if(qioctl(fd, VIDIOC_G_FMT, &_format, "Settings::signalAccepted()") != 0) {
-                qWarning("[SETTINGS] - signalAccepted() - Error setting given config");
+            if (qioctl(fd, VIDIOC_S_FMT, &fmt, "V4LSettings::signalAccepted()") != 0)
+                qWarning("[V4L_SETTINGS] - signalAccepted() - Unable to set selected framesize");
+            if(qioctl(fd, VIDIOC_G_FMT, &_format, "V4LSettings::signalAccepted()") != 0) {
+                qWarning("[V4L_SETTINGS] - signalAccepted() - Error setting given config");
             } else {
-                //qDebug() << "[SETTINGS] - signalAccepted() - Config: " << getFormatStringList(_format);
+                //qDebug() << "[V4L_SETTINGS] - signalAccepted() - Config: " << getFormatStringList(_format);
                 emit accepted();
             }
         } else {
-            qWarning("[SETTINGS] - signalAccepted() - Unable to get configuration for the selected device");
+            qWarning("[V4L_SETTINGS] - signalAccepted() - Unable to get configuration for the selected device");
             emit rejected();
         }
         /* Close Device */
         ::close(fd);
     } else {
-        qWarning("[SETTINGS] - signalAccepted() - No valid capture mode found for the selected device");
+        qWarning("[V4L_SETTINGS] - signalAccepted() - No valid capture mode found for the selected device");
         emit rejected();
     }
 }
 
-void Settings::signalRejected() {
+void V4LSettings::signalRejected() {
     CLEAR(_format);
     emit rejected();
 }
 
-void Settings::tryCaptureMode() {
+void V4LSettings::tryCaptureMode() {
     if (_devicesList .count()> 0) {
         /* Open Device */
         int fd = open(_devicesList.at(ui->device->currentIndex()));
@@ -185,13 +186,13 @@ void Settings::tryCaptureMode() {
         struct v4l2_format fmt;
         CLEAR(fmt);
         fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-        if (qioctl(fd, VIDIOC_G_FMT, &fmt, "Settings::tryCaptureMode()") != -1) {
+        if (qioctl(fd, VIDIOC_G_FMT, &fmt, "V4LSettings::tryCaptureMode()") != -1) {
             ui->captureMode->addItem("Single Plane Video Capture");
             _captureModes << V4L2_BUF_TYPE_VIDEO_CAPTURE;
         }
         CLEAR(fmt);
         fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
-        if (qioctl(fd, VIDIOC_TRY_FMT, &fmt, "Settings::tryCaptureMode()") != -1) {
+        if (qioctl(fd, VIDIOC_TRY_FMT, &fmt, "V4LSettings::tryCaptureMode()") != -1) {
             ui->captureMode->addItem("Multi Plane Video Capture");
             _captureModes << V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
         }
@@ -202,7 +203,7 @@ void Settings::tryCaptureMode() {
     }
 }
 
-void Settings::tryColorSpace() {
+void V4LSettings::tryColorSpace() {
     if (ui->captureMode->count()){
         /* Open Device */
         int fd = open(_devicesList.at(ui->device->currentIndex()));
@@ -211,48 +212,48 @@ void Settings::tryColorSpace() {
         struct v4l2_format fmt;
         CLEAR(fmt);
         fmt.type = _captureModes.at(ui->captureMode->currentIndex());
-        qioctl(fd, VIDIOC_G_FMT, &fmt, " Settings::tryColorSpace()");
+        qioctl(fd, VIDIOC_G_FMT, &fmt, " V4LSettings::tryColorSpace()");
         fmt.fmt.pix.colorspace = V4L2_COLORSPACE_SMPTE170M;
-        if (qioctl(fd, VIDIOC_TRY_FMT, &fmt, " Settings::tryColorSpace()") == 0) {
+        if (qioctl(fd, VIDIOC_TRY_FMT, &fmt, " V4LSettings::tryColorSpace()") == 0) {
             ui->colorSpace->addItem("SMPTE170M");
             _colorSpace << V4L2_COLORSPACE_SMPTE170M;
         }
         fmt.fmt.pix.colorspace = V4L2_COLORSPACE_SMPTE240M;
-        if (qioctl(fd, VIDIOC_TRY_FMT, &fmt, " Settings::tryColorSpace()") == 0) {
+        if (qioctl(fd, VIDIOC_TRY_FMT, &fmt, " V4LSettings::tryColorSpace()") == 0) {
             ui->colorSpace->addItem("SMPTE240M");
             _colorSpace << V4L2_COLORSPACE_SMPTE240M;
         }
         fmt.fmt.pix.colorspace = V4L2_COLORSPACE_REC709;
-        if (qioctl(fd, VIDIOC_TRY_FMT, &fmt, " Settings::tryColorSpace()") == 0) {
+        if (qioctl(fd, VIDIOC_TRY_FMT, &fmt, " V4LSettings::tryColorSpace()") == 0) {
             ui->colorSpace->addItem("REC709");
             _colorSpace << V4L2_COLORSPACE_REC709;
         }
         fmt.fmt.pix.colorspace = V4L2_COLORSPACE_BT878;
-        if (qioctl(fd, VIDIOC_TRY_FMT, &fmt, " Settings::tryColorSpace()") == 0) {
+        if (qioctl(fd, VIDIOC_TRY_FMT, &fmt, " V4LSettings::tryColorSpace()") == 0) {
             ui->colorSpace->addItem("BT878");
             _colorSpace << V4L2_COLORSPACE_BT878;
         }
         fmt.fmt.pix.colorspace = V4L2_COLORSPACE_470_SYSTEM_M;
-        if (qioctl(fd, VIDIOC_TRY_FMT, &fmt, " Settings::tryColorSpace()") == 0) {
+        if (qioctl(fd, VIDIOC_TRY_FMT, &fmt, " V4LSettings::tryColorSpace()") == 0) {
             ui->colorSpace->addItem("470 System M");
             _colorSpace << V4L2_COLORSPACE_470_SYSTEM_M;
         }
         fmt.fmt.pix.colorspace = V4L2_COLORSPACE_470_SYSTEM_BG;
-        if (qioctl(fd, VIDIOC_TRY_FMT, &fmt, " Settings::tryColorSpace()") == 0) {
+        if (qioctl(fd, VIDIOC_TRY_FMT, &fmt, " V4LSettings::tryColorSpace()") == 0) {
             ui->colorSpace->addItem("470 System BG");
             _colorSpace << V4L2_COLORSPACE_470_SYSTEM_BG;
         }
         fmt.fmt.pix.colorspace = V4L2_COLORSPACE_JPEG;
-        if (qioctl(fd, VIDIOC_TRY_FMT, &fmt, " Settings::tryColorSpace()") == 0) {
+        if (qioctl(fd, VIDIOC_TRY_FMT, &fmt, " V4LSettings::tryColorSpace()") == 0) {
             ui->colorSpace->addItem("JPEG");
             _colorSpace << V4L2_COLORSPACE_JPEG;
         }
         fmt.fmt.pix.colorspace = V4L2_COLORSPACE_SRGB;
-        if (qioctl(fd, VIDIOC_TRY_FMT, &fmt, " Settings::tryColorSpace()") == 0) {
+        if (qioctl(fd, VIDIOC_TRY_FMT, &fmt, " V4LSettings::tryColorSpace()") == 0) {
             ui->colorSpace->addItem("sRGB");
             _colorSpace << V4L2_COLORSPACE_SRGB;
         }
-        qioctl(fd, VIDIOC_G_FMT, &fmt, " Settings::tryColorSpace()");
+        qioctl(fd, VIDIOC_G_FMT, &fmt, " V4LSettings::tryColorSpace()");
         ui->colorSpace->setCurrentIndex(_colorSpace.indexOf((v4l2_colorspace) fmt.fmt.pix.colorspace));
         /* Close Device */
         ::close(fd);
@@ -260,7 +261,7 @@ void Settings::tryColorSpace() {
 
 }
 
-void Settings::tryVideoMode() {
+void V4LSettings::tryVideoMode() {
     if (_captureModes.count()){
         /* Open Device */
         int fd = open(_devicesList.at(ui->device->currentIndex()));
@@ -269,76 +270,75 @@ void Settings::tryVideoMode() {
         struct v4l2_format fmt;
         CLEAR(fmt);
         fmt.type = _captureModes.at(ui->captureMode->currentIndex());
-        //qDebug() << (ui->captureMode->currentIndex() + 1) << "/" << _captureModes.count() ;
-        qioctl(fd, VIDIOC_G_FMT, &fmt, "Settings::tryVideoMode()");
+        qioctl(fd, VIDIOC_G_FMT, &fmt, "V4LSettings::tryVideoMode()");
         fmt.fmt.pix.field = V4L2_FIELD_ANY;
-        if (qioctl(fd, VIDIOC_TRY_FMT, &fmt, "Settings::tryVideoMode()") == 0) {
+        if (qioctl(fd, VIDIOC_TRY_FMT, &fmt, "V4LSettings::tryVideoMode()") == 0) {
             ui->videoMode->addItem("Any");
             _field << V4L2_FIELD_ANY;
         }
         fmt.fmt.pix.field = V4L2_FIELD_NONE;
-        if (qioctl(fd, VIDIOC_TRY_FMT, &fmt, "Settings::tryVideoMode()") == 0) {
+        if (qioctl(fd, VIDIOC_TRY_FMT, &fmt, "V4LSettings::tryVideoMode()") == 0) {
             ui->videoMode->addItem("None");
             _field << V4L2_FIELD_NONE;
         }
         fmt.fmt.pix.field = V4L2_FIELD_TOP;
-        if (qioctl(fd, VIDIOC_TRY_FMT, &fmt, "Settings::tryVideoMode()") == 0) {
+        if (qioctl(fd, VIDIOC_TRY_FMT, &fmt, "V4LSettings::tryVideoMode()") == 0) {
             ui->videoMode->addItem("Top");
             _field << V4L2_FIELD_TOP;
         }
         fmt.fmt.pix.field = V4L2_FIELD_BOTTOM;
-        if (qioctl(fd, VIDIOC_TRY_FMT, &fmt, "Settings::tryVideoMode()") == 0) {
+        if (qioctl(fd, VIDIOC_TRY_FMT, &fmt, "V4LSettings::tryVideoMode()") == 0) {
             ui->videoMode->addItem("Bottom");
             _field << V4L2_FIELD_BOTTOM;
         }
         fmt.fmt.pix.field = V4L2_FIELD_INTERLACED;
-        if (qioctl(fd, VIDIOC_TRY_FMT, &fmt, "Settings::tryVideoMode()") == 0) {
+        if (qioctl(fd, VIDIOC_TRY_FMT, &fmt, "V4LSettings::tryVideoMode()") == 0) {
             ui->videoMode->addItem("Interlaced");
             _field << V4L2_FIELD_INTERLACED;
         }
         fmt.fmt.pix.field = V4L2_FIELD_SEQ_TB;
-        if (qioctl(fd, VIDIOC_TRY_FMT, &fmt, "Settings::tryVideoMode()") == 0) {
+        if (qioctl(fd, VIDIOC_TRY_FMT, &fmt, "V4LSettings::tryVideoMode()") == 0) {
             ui->videoMode->addItem("Seq TB");
             _field << V4L2_FIELD_SEQ_TB;
         }
         fmt.fmt.pix.field = V4L2_FIELD_SEQ_BT;
-        if (qioctl(fd, VIDIOC_TRY_FMT, &fmt, "Settings::tryVideoMode()") == 0) {
+        if (qioctl(fd, VIDIOC_TRY_FMT, &fmt, "V4LSettings::tryVideoMode()") == 0) {
             ui->videoMode->addItem("Seq BT");
             _field << V4L2_FIELD_SEQ_BT;
         }
         fmt.fmt.pix.field = V4L2_FIELD_ALTERNATE;
-        if (qioctl(fd, VIDIOC_TRY_FMT, &fmt, "Settings::tryVideoMode()") == 0) {
+        if (qioctl(fd, VIDIOC_TRY_FMT, &fmt, "V4LSettings::tryVideoMode()") == 0) {
             ui->videoMode->addItem("Alternate");
             _field << V4L2_FIELD_ALTERNATE;
         }
         fmt.fmt.pix.field = V4L2_FIELD_INTERLACED_TB;
-        if (qioctl(fd, VIDIOC_TRY_FMT, &fmt, "Settings::tryVideoMode()") == 0) {
+        if (qioctl(fd, VIDIOC_TRY_FMT, &fmt, "V4LSettings::tryVideoMode()") == 0) {
             ui->videoMode->addItem("Interlaced TB");
             _field << V4L2_FIELD_INTERLACED_TB;
         }
         fmt.fmt.pix.field = V4L2_FIELD_INTERLACED_BT;
-        if (qioctl(fd, VIDIOC_TRY_FMT, &fmt, "Settings::tryVideoMode()") == 0) {
+        if (qioctl(fd, VIDIOC_TRY_FMT, &fmt, "V4LSettings::tryVideoMode()") == 0) {
             ui->videoMode->addItem("Interlaced BT");
             _field << V4L2_FIELD_INTERLACED_BT;
         }
-        qioctl(fd, VIDIOC_G_FMT, &fmt, "Settings::tryVideoMode()");
+        qioctl(fd, VIDIOC_G_FMT, &fmt, "V4LSettings::tryVideoMode()");
         ui->videoMode->setCurrentIndex(_field.indexOf((v4l2_field) fmt.fmt.pix.field));
         /* Close Device */
         ::close(fd);
     }
 }
 
-QString Settings::decode4CC(__u32 code) {
+QString V4LSettings::decode4CC(__u32 code) {
     return QString((char *)&code).mid(0,4);
 }
 
-quint32 Settings::encode4CC(QString code) {
+quint32 V4LSettings::encode4CC(QString code) {
     __u32 res = 0;
     memcpy(&res, code.toAscii().data(), sizeof(__u32));
     return res;
 }
 
-QString Settings::decodeKernelVersion(__u32 code) {
+QString V4LSettings::decodeKernelVersion(__u32 code) {
     QString result;
     result += QString("%1").arg((quint8) (code >> 16));
     result += QString(".%1").arg((quint8) (code >> 8));
@@ -346,7 +346,7 @@ QString Settings::decodeKernelVersion(__u32 code) {
     return result;
 }
 
-QStringList Settings::getCapabilitiesStringList(struct v4l2_capability cap) {
+QStringList V4LSettings::getCapabilitiesStringList(struct v4l2_capability cap) {
     QStringList result;
     QString sVersion = decodeKernelVersion(cap.version);
     result << "Device Name: " + QString((char *) cap.card);
@@ -405,7 +405,7 @@ QStringList Settings::getCapabilitiesStringList(struct v4l2_capability cap) {
     return result;
 }
 
-QStringList Settings::getFormatStringList(struct v4l2_format fmt) {
+QStringList V4LSettings::getFormatStringList(struct v4l2_format fmt) {
     QStringList result;
     result << "Frame Size: " + QString("%1x%2").arg(fmt.fmt.pix.width).arg(fmt.fmt.pix.height);
     result << "Format: " + decode4CC(fmt.fmt.pix.pixelformat);
@@ -476,7 +476,7 @@ QStringList Settings::getFormatStringList(struct v4l2_format fmt) {
     return result;
 }
 
-int Settings::qioctl(int fh, int request, void *arg, QString module) {
+int V4LSettings::qioctl(int fh, int request, void *arg, QString module) {
     int res;
     do {
         res = ioctl(fh, request, arg);

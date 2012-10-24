@@ -6,7 +6,7 @@
 
 #include <linux/videodev2.h>
 
-#include "settings.h"
+#include "v4lsettings.h"
 
 typedef struct _capture_device {
     QString deviceName;
@@ -19,7 +19,7 @@ class V4LConfigurationEngine : public QObject
 
 private:
     QString _deviceName;
-    Settings * _settingsDialog;
+    V4LSettings * _settingsDialog;
     struct v4l2_format _stored_configuration;
 
     void configurationQuery(struct v4l2_format config);
