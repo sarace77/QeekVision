@@ -1,6 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-
+#include "v4lcamera.h"
 
 #include <QDebug>
 
@@ -8,7 +8,7 @@
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),  ui(new Ui::MainWindow) {
     ui->setupUi(this);
-    capture3ad = new CameraThread();
+    capture3ad = new V4LCamera();
     connect(capture3ad, SIGNAL(availableFrame()), this, SLOT(processFrame()));
     process3ad = new Thermography();
     connect(process3ad, SIGNAL(availableThermography()), this, SLOT(showFrame()));

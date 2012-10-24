@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "v4lcamera.h"
 
 #include <QDebug>
 
@@ -10,7 +11,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
     bg = NULL;
     rng = new RNG(12345);
-    capture3ad = new CameraThread();
+    capture3ad = new V4LCamera();
     addToolBar(capture3ad->toolBar());
     connect(capture3ad, SIGNAL(availableFrame()), this, SLOT(processFrame()));
     connect(capture3ad, SIGNAL(terminated()), this, SLOT(initBG()));

@@ -1,9 +1,6 @@
 #ifndef CAMERATHREAD_H
 #define CAMERATHREAD_H
 
-#include <libv4l2.h>
-#include <libv4lconvert.h>
-#include <linux/videodev2.h>
 #include <opencv/cv.h>
 #include <time.h>
 
@@ -13,9 +10,6 @@
 #include <QThread>
 #include <QTime>
 #include <QToolBar>
-
-#include "configurationengine.h"
-#include "settings.h"
 
 using namespace cv;
 
@@ -29,33 +23,10 @@ class CameraThread : public QThread
 {
     Q_OBJECT
 
-private:
+protected:
     /// ToolBar Widgets
     QToolBar    *_threadToolBar;
     QAction     *_settingsAction, *_startAction, *_stopAction;
-
-    /// Configuration Engine
-    ConfigurationEngine *_configEngine;
-
-    /// Capture Device Name and File descriptor;
-    QString _deviceName;
-    int     _fd;
-
-    /// V4L Support Structures
-    enum   v4l2_buf_type        _type;
-    struct v4l2_buffer          _buf;
-    struct v4l2_format          _fmt, _src_fmt;
-    struct v4l2_requestbuffers  _req;
-    struct v4lconvert_data      *_v4lconvert_data;
-
-    /// Internal Buffer for Memory Mapping
-    Buffer          *_buffers;
-    unsigned int    _n_buffers;
-
-    /// select() support data
-    int             _r;
-    fd_set          _fds;
-    struct timeval  _tv;
 
     /// Internal Frame Buffer
     QMutex       _mutex;
@@ -65,32 +36,24 @@ private:
     float _fps;
     QTime myTimer;
 
-    /// Used to Open Capture Device and set V4l Conversion format
-    void openCaptureDevice();
-
-protected:
-    int exec();
-    void run();
-
-private slots:
-    void configure();
+protected slots:
+    virtual void configure() = 0;
 
 public:
     CameraThread(QObject *parent = 0);
     ~CameraThread();
 
     float getFPS();
-    int getHeight();
-    int getWidth();
-    bool isConfigurated();
-
+    static QImage mat2qImage(Mat src);
     QToolBar *toolBar();
 
-    static QImage mat2qImage(Mat src);
+    virtual int getHeight() = 0;
+    virtual int getWidth() = 0;
+    virtual bool isConfigurated() = 0;
 
 public slots:
     Mat getFrame();
-    void stop();
+    virtual void stop() = 0;
 
 signals:
     void availableFrame();
