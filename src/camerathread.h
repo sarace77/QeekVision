@@ -5,11 +5,15 @@
 #include <time.h>
 
 #include <QAction>
+#include <QComboBox>
+#include <QLabel>
 #include <QMutex>
 #include <QQueue>
 #include <QThread>
 #include <QTime>
 #include <QToolBar>
+
+#include "Defs.h"
 
 using namespace cv;
 
@@ -27,6 +31,8 @@ protected:
     /// ToolBar Widgets
     QToolBar    *_threadToolBar;
     QAction     *_settingsAction, *_startAction, *_stopAction;
+    QLabel      *_subsystemLabel;
+    QComboBox   *_subsystemComboBox;
 
     /// Internal Frame Buffer
     QMutex       _mutex;

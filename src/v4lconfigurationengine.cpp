@@ -8,6 +8,7 @@ V4LConfigurationEngine::V4LConfigurationEngine(QObject *parent) : QObject(parent
     _settingsDialog = new V4LSettings();
     connect(_settingsDialog, SIGNAL(accepted()), this, SLOT(settingsAccepted()));
     connect(_settingsDialog, SIGNAL(rejected()), this, SLOT(settingsRejected()));
+
 }
 
 V4LConfigurationEngine::~V4LConfigurationEngine() {

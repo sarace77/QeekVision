@@ -24,6 +24,7 @@ private:
 
     void configurationQuery(struct v4l2_format config);
 
+
 private slots:
     void settingsAccepted();
     void settingsRejected();

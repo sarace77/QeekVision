@@ -7,16 +7,14 @@
 #include <QQueue>
 #include <QThread>
 
+#include "processthread.h"
+
 using namespace cv;
 
-class Thermography : public QThread
+class Thermography : public ProcessThread
 {
     Q_OBJECT
 
-private:
-    QQueue<Mat > _inBuffer;
-    QQueue<Mat > _outBuffer;
-    QMutex _inBuffMtx;
 protected slots:
     int exec();
     void run();
@@ -24,13 +22,6 @@ protected slots:
 public:
     Thermography(QObject *parent = 0);
     
-public slots:
-    Mat dequeue();
-    void enqueue(Mat frm);
-    void stop();
-
-signals:
-    void availableThermography();
 };
 
 #endif // THERMOGRAPHY_H

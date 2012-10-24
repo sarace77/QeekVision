@@ -21,5 +21,9 @@
 #define _REQ_BUFF_COUNT 2
 #endif //_REQ_BUFF_COUNT
 
+#ifndef _V4L_CAMERA_THREAD
+#define _V4L_CAMERA_THREAD
+#endif //_V4L_CAMERA_THREAD
+
 #endif // DEFS_H
 

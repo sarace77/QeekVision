@@ -13,14 +13,16 @@ HEADERS += \
     thermography.h \
     v4lcamera.h \
     v4lconfigurationengine.h \
-    v4lsettings.h
+    v4lsettings.h \
+    processthread.h
 
 SOURCES += \
     camerathread.cpp \
     thermography.cpp \
     v4lcamera.cpp \
     v4lconfigurationengine.cpp \
-    v4lsettings.cpp
+    v4lsettings.cpp \
+    processthread.cpp
 
 RESOURCES += \
     resources.qrc

@@ -4,7 +4,7 @@
 #include <QFileDialog>
 #include <QMainWindow>
 #include "camerathread.h"
-#include "thermography.h"
+#include "processthread.h"
 
 
 namespace Ui {
@@ -18,7 +18,7 @@ class MainWindow : public QMainWindow
 private:
     Ui::MainWindow *ui;
     CameraThread *capture3ad;
-    Thermography *process3ad;
+    ProcessThread *process3ad;
 
     QFileDialog *fDialog;
 
