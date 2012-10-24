@@ -10,17 +10,17 @@ VERSION = 0.1.0
 HEADERS += \
     settings.h \
     Defs.h \
-    configurationengine.h \
     camerathread.h \
     thermography.h \
-    v4lcamera.h
+    v4lcamera.h \
+    v4lconfigurationengine.h
 
 SOURCES += \
     settings.cpp \
-    configurationengine.cpp \
     camerathread.cpp \
     thermography.cpp \
-    v4lcamera.cpp
+    v4lcamera.cpp \
+    v4lconfigurationengine.cpp
 
 RESOURCES += \
     resources.qrc

@@ -10,7 +10,7 @@
 
 V4LCamera::V4LCamera() {
     /// Configuration Engine Instance and signals connection
-    _configEngine = new ConfigurationEngine();
+    _configEngine = new V4LConfigurationEngine();
     connect(_configEngine, SIGNAL(availableConfiguration()), this, SLOT(configure()));
 
     /// Cleaning frame format;

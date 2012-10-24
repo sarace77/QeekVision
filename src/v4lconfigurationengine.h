@@ -1,5 +1,5 @@
-#ifndef CONFIGURATIONENGINE_H
-#define CONFIGURATIONENGINE_H
+#ifndef V4LCONFIGURATIONENGINE_H
+#define V4LCONFIGURATIONENGINE_H
 
 #include <QStringList>
 #include <QObject>
@@ -13,7 +13,7 @@ typedef struct _capture_device {
     struct v4l2_format configuration;
 } CaptureDevice;
 
-class ConfigurationEngine : public QObject
+class V4LConfigurationEngine : public QObject
 {
     Q_OBJECT
 
@@ -29,8 +29,8 @@ private slots:
     void settingsRejected();
 
 public:
-    ConfigurationEngine(QObject *parent = 0);
-    ~ConfigurationEngine();
+    V4LConfigurationEngine(QObject *parent = 0);
+    ~V4LConfigurationEngine();
 
     static struct v4l2_format encodeConfigurationStringList(QStringList sConfig);
 
@@ -43,4 +43,4 @@ signals:
 
 };
 
-#endif // CONFIGURATIONENGINE_H
+#endif // V4LCONFIGURATIONENGINE_H

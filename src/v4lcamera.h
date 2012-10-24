@@ -6,7 +6,7 @@
 #include <linux/videodev2.h>
 
 #include "camerathread.h"
-#include "configurationengine.h"
+#include "v4lconfigurationengine.h"
 #include "settings.h"
 
 
@@ -14,7 +14,7 @@ class V4LCamera : public CameraThread
 {
 private:
     /// Configuration Engine
-    ConfigurationEngine *_configEngine;
+    V4LConfigurationEngine *_configEngine;
 
     /// Capture Device Name and File descriptor;
     QString _deviceName;
