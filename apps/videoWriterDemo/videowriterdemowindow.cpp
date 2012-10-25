@@ -7,11 +7,20 @@ videoWriterDemoWindow::videoWriterDemoWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::videoWriterDemoWindow)
 {
+    once = true;
     ui->setupUi(this);
     capture3ad = new V4LCamera();
     connect(capture3ad, SIGNAL(availableFrame()), this, SLOT(showFrame()));
+    process3ad = new MPGWriter();
     addToolBar(capture3ad->toolBar());
-    process3ad = NULL;
+    if(process3ad->hasToolBar()) {
+        addToolBar(process3ad->toolBar());
+        this->setMinimumWidth(capture3ad->toolBar()->width() + process3ad->toolBar()->width());
+    } else {
+        this->setMinimumWidth(capture3ad->toolBar()->width());
+    }
+    connect(capture3ad, SIGNAL(terminated()), process3ad, SLOT(stop()));
+    connect(capture3ad, SIGNAL(started()), process3ad, SLOT(stop()));
 }
 
 videoWriterDemoWindow::~videoWriterDemoWindow()
@@ -27,19 +36,6 @@ videoWriterDemoWindow::~videoWriterDemoWindow()
 
 void videoWriterDemoWindow::showFrame() {
     Mat src = capture3ad->getFrame();
-    if (process3ad == NULL) {
-        process3ad = new MPGWriter(capture3ad->getFPS(), Size(capture3ad->getWidth(), capture3ad->getHeight()));
-        connect(capture3ad, SIGNAL(terminated()), process3ad, SLOT(stop()));
-        connect(process3ad, SIGNAL(availableProcessedFrame()), this, SLOT(_debugShow()));
-        process3ad->start();
-    }
-    if (!process3ad->isRunning()) {
-        delete process3ad;
-        process3ad = new MPGWriter(capture3ad->getFPS(), Size(capture3ad->getWidth(), capture3ad->getHeight()));
-        connect(capture3ad, SIGNAL(terminated()), process3ad, SLOT(stop()));
-        connect(process3ad, SIGNAL(availableProcessedFrame()), this, SLOT(_debugShow()));
-        process3ad->start();
-    }
     process3ad->enqueue(src);
     this->resize(capture3ad->getWidth(), capture3ad->getHeight() + 47 + capture3ad->toolBar()->size().height());
     ui->label->resize(capture3ad->getWidth(), capture3ad->getHeight());

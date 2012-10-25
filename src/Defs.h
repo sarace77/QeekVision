@@ -17,6 +17,10 @@
 #define _STD_FRM_WDTH 640
 #endif //_STD_FRM_WDTH
 
+#ifndef _STD_FRM_RT
+#define _STD_FRM_RT 30
+#endif //_STD_FRM_RT
+
 #ifndef _REQ_BUFF_COUNT
 #define _REQ_BUFF_COUNT 2
 #endif //_REQ_BUFF_COUNT

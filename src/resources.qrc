@@ -3,5 +3,7 @@
         <file>settings.png</file>
         <file>start.png</file>
         <file>stop.png</file>
+        <file>stop2.png</file>
+        <file>record.png</file>
     </qresource>
 </RCC>
