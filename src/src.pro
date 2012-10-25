@@ -17,7 +17,8 @@ HEADERS += \
     v4lconfigurationengine.h \
     v4lsettings.h \
     processthread.h \
-    bgsubtractor.h
+    bgsubtractor.h \
+    mpgwriter.h
 
 SOURCES += \
     camerathread.cpp \
@@ -26,7 +27,8 @@ SOURCES += \
     v4lconfigurationengine.cpp \
     v4lsettings.cpp \
     processthread.cpp \
-    bgsubtractor.cpp
+    bgsubtractor.cpp \
+    mpgwriter.cpp
 
 RESOURCES += \
     resources.qrc

@@ -112,7 +112,13 @@ void BGSubtractor::initBG() {
 }
 
 void BGSubtractor::run() {
+    qDebug() << "[BG_SUBTRACTOR] - run() - Starting";
     exec();
+}
+
+void BGSubtractor::stop() {
+    terminate();
+    qDebug() << "[BG_SUBTRACTOR] - stop() - Terminated";
 }
 
 QToolBar *BGSubtractor::toolBar() {

@@ -126,7 +126,13 @@ bool Thermography::hasToolBar() {
 }
 
 void Thermography::run() {
+    qDebug() << "[THERMOGRAPHY] - run() - Starting";
     exec();
+}
+
+void Thermography::stop() {
+    terminate();
+    qDebug() << "[THERMOGRAPHY] - stop() - Terminated";
 }
 
 QToolBar *Thermography::toolBar() {

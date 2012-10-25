@@ -26,7 +26,3 @@ Mat ProcessThread::dequeue() {
     return _outBuffer.dequeue();
 }
 
-void ProcessThread::stop() {
-    terminate();
-    qDebug() << "[PROCESS_THREAD] - stop() - Terminated";
-}

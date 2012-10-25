@@ -25,6 +25,7 @@ private:
 protected slots:
     int exec();
     void run();
+    void stop();
 
 public:
     Thermography(QObject *parent = 0);

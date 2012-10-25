@@ -27,8 +27,9 @@ private:
 
 protected slots:
     int exec();
-    void run();
     void initBG();
+    void run();
+    void stop();
 
 public:
     BGSubtractor(QObject *parent = 0);

@@ -29,7 +29,6 @@ public:
 public slots:
     Mat dequeue();
     void enqueue(Mat frm);
-    void stop();
 
 signals:
     void availableProcessedFrame();

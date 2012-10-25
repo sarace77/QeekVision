@@ -2,5 +2,6 @@ TEMPLATE = subdirs
 
 SUBDIRS += qeekdemo \
     bgSubtract \
-    thermographyDemo
+    thermographyDemo \
+    videoWriterDemo
 
