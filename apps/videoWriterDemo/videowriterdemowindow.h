@@ -15,19 +15,19 @@ class videoWriterDemoWindow : public QMainWindow
     Q_OBJECT
     
 private:
+    Ui::videoWriterDemoWindow *ui;
     CameraThread *capture3ad;
     MPGWriter *process3ad;
-
     bool once;
+
 private slots:
     void showFrame();
     void _debugShow();
+
 public:
     explicit videoWriterDemoWindow(QWidget *parent = 0);
     ~videoWriterDemoWindow();
     
-private:
-    Ui::videoWriterDemoWindow *ui;
 };
 
 #endif // VIDEOWRITERDEMOWINDOW_H

@@ -3,5 +3,6 @@ TEMPLATE = subdirs
 SUBDIRS += qeekdemo \
     bgSubtract \
     thermographyDemo \
-    videoWriterDemo
+    videoWriterDemo \
+    circlesDemo
 
