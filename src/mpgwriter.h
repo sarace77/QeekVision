@@ -4,6 +4,7 @@
 #include <opencv/highgui.h>
 
 #include <QAction>
+#include <QTime>
 #include <QToolBar>
 
 
@@ -19,8 +20,9 @@ class MPGWriter : public ProcessThread
 private:
     QString _videoFileName;
     Size _frameSize;
-    double _FPS;
+    double _FPS, _adjustedFPS;
     unsigned int _count;
+    QTime _timer;
 
     QToolBar *_mpgwriterToolBar;
     QAction *_startRecordAction, *_stopRecordAction;
@@ -28,6 +30,9 @@ private:
     VideoWriter *_outStream;
 
     bool checkFrame(Mat frame);
+
+private slots:
+    void adjustFrameRate();
 
 protected slots:
     int exec();
@@ -40,8 +45,11 @@ public:
     QToolBar *toolBar();
 
 public slots:
+    void enqueue(Mat frm);
     void stop();
 
+signals:
+    void receivedFrame();
 };
 
 #endif // MPGWRITER_H

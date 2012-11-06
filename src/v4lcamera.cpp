@@ -8,6 +8,8 @@
 
 #include <QDebug>
 
+#include <opencv/highgui.h>
+
 V4LCamera::V4LCamera() {
     /// Configuration Engine Instance and signals connection
     _configEngine = new V4LConfigurationEngine();
@@ -87,18 +89,18 @@ int V4LCamera::exec() {
         if(!qq->empty()) {
             Mat newFrame = qq->clone();
             switch(_fmt.fmt.pix.height) {
-            case 720:
-            case 800:
-            case 960:
-                cvtColor(newFrame, newFrame, CV_YUV2RGB_YUYV);
-            break;
-        case 1024:
-            cvtColor(newFrame, newFrame, CV_YUV2BGR_Y422);
-            break;
-        default:
-            cvtColor(newFrame, newFrame, CV_YUV2RGB_Y422);
-            break;
-        }
+                case 720:
+                case 800:
+                case 960:
+                    cvtColor(newFrame, newFrame, CV_YUV2RGB_YUYV);
+                    break;
+                case 1024:
+                    cvtColor(newFrame, newFrame, CV_YUV2BGR_Y422);
+                    break;
+                default:
+                    cvtColor(newFrame, newFrame, CV_YUV2RGB_Y422);
+                    break;
+            }
             _cvMatbuffer.enqueue(newFrame);
             emit availableFrame();
         }
@@ -150,6 +152,9 @@ void V4LCamera::run() {
     _startAction->setEnabled(false);
     _stopAction->setEnabled(true);
     _settingsAction->setEnabled(false);
+
+    if (!isConfigurated())
+        configure();
 
     /// Opening Capture Device
     openCaptureDevice();

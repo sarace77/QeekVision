@@ -17,7 +17,7 @@ HEADERS  += videowriterdemowindow.h
 
 FORMS    += videowriterdemowindow.ui
 
-INCLUDEPATH += /usr/local/include/opencv-2.4.2
+INCLUDEPATH += /usr/local/include/
 INCLUDEPATH += $$PWD/../../src
 DEPENDPATH += $$PWD/../../src
 

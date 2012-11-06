@@ -3,8 +3,8 @@ TEMPLATE = lib
 LIBS += -L/usr/local/lib/
 LIBS += -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_video
 LIBS += -lv4lconvert
-INCLUDEPATH += /usr/local/include/opencv-2.4.2
-DEPENDPATH += /usr/local/include/opencv-2.4.2
+INCLUDEPATH += /usr/local/include/
+DEPENDPATH += /usr/local/include/
 
 TARGET = QeekVision
 VERSION = 0.1.0

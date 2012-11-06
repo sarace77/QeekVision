@@ -22,7 +22,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),  ui(new Ui::MainW
     connect(fDialog, SIGNAL(accepted()), this, SLOT(openFile()));
     if(process3ad->hasToolBar()) {
         addToolBar(process3ad->toolBar());
-        this->setMinimumWidth(capture3ad->toolBar()->width() + process3ad->toolBar()->width());
+        this->setMinimumWidth(capture3ad->toolBar()->width() + 80);
     } else {
         this->setMinimumWidth(capture3ad->toolBar()->width());
     }
