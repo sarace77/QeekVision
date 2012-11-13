@@ -19,8 +19,6 @@ class Thermography : public ProcessThread
 
 private:
     QToolBar *_thermographyToolBar;
-//    QSlider *_redSlider, *_greenHiSlider, *_greenLoSlider, *_blueSlider;
-//    QSpinBox *_redSpin, *_greenHiSpin, *_greenLoSpin, *_blueSpin;
     QSlider *_blueSlider;
     QSpinBox *_blueSpin;
 

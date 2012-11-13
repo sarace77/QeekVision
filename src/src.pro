@@ -19,7 +19,8 @@ HEADERS += \
     processthread.h \
     bgsubtractor.h \
     mpgwriter.h \
-    circles.h
+    circles.h \
+    opencvcamera.h
 
 SOURCES += \
     camerathread.cpp \
@@ -30,7 +31,8 @@ SOURCES += \
     processthread.cpp \
     bgsubtractor.cpp \
     mpgwriter.cpp \
-    circles.cpp
+    circles.cpp \
+    opencvcamera.cpp
 
 RESOURCES += \
     resources.qrc
