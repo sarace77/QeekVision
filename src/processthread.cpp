@@ -6,6 +6,11 @@
 ProcessThread::ProcessThread(QObject *parent) : QThread(parent) {
     _inBuffer.clear();
     _outBuffer.clear();
+    _fps = 0.0;
+}
+
+float ProcessThread::getFrameRate() {
+    return _fps;
 }
 
 void ProcessThread::enqueue(Mat frm) {

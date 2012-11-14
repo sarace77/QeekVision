@@ -6,6 +6,7 @@
 #include <QMutex>
 #include <QQueue>
 #include <QThread>
+#include <QTime>
 #include <QToolBar>
 
 using namespace cv;
@@ -19,12 +20,15 @@ protected:
     QQueue<Mat > _inBuffer;
     QQueue<Mat > _outBuffer;
     QMutex _inBuffMtx;
-
+    float _fps;
+    QTime _fpsTimer;
 public:
     ProcessThread(QObject *parent = 0);
 
     virtual bool hasToolBar() = 0;
     virtual QToolBar *toolBar() = 0;
+
+    float getFrameRate();
 
 public slots:
     Mat dequeue();
