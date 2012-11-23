@@ -2,9 +2,13 @@
 #define CIRCLESMAINWINDOW_H
 
 #include <QMainWindow>
+#include <QTime>
+#include <QHBoxLayout>
+#include <QLabel>
 
 #include "camerathread.h"
 #include "circles.h"
+
 
 namespace Ui {
 class CirclesMainWindow;
@@ -17,7 +21,10 @@ private:
     Ui::CirclesMainWindow *ui;
     CameraThread *capture3ad;
     Circles *process3ad;
-
+    Mat src;
+    QTime dialogTimer;
+    QHBoxLayout *ellipseLayout;
+    QLabel  *ellipseLabel;
 private slots:
     void processFrame();
     void showFrame();

@@ -20,7 +20,8 @@ HEADERS += \
     bgsubtractor.h \
     mpgwriter.h \
     circles.h \
-    opencvcamera.h
+    opencvcamera.h \
+    ellipseobject.h
 
 SOURCES += \
     camerathread.cpp \
@@ -32,7 +33,8 @@ SOURCES += \
     bgsubtractor.cpp \
     mpgwriter.cpp \
     circles.cpp \
-    opencvcamera.cpp
+    opencvcamera.cpp \
+    ellipseobject.cpp
 
 RESOURCES += \
     resources.qrc
