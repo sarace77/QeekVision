@@ -4,10 +4,9 @@
 #define M_PI 3.14159265358979323846
 #endif
 
-#include <QDebug>
-
 #include <opencv2/highgui/highgui.hpp>
 
+#include <QDebug>
 
 Circles::Circles(QObject *parent) : ProcessThread(parent) {
     _circlesToolBar = new QToolBar();
@@ -53,9 +52,9 @@ Circles::Circles(QObject *parent) : ProcessThread(parent) {
     _maxRadiusSlider->setToolTip("Maximum radius to be detected. If unknown, put zero as default.");
 
     _errorLabel = new QLabel("Area shape Tolerance");
-    _errorSlider = new QSpinBox();
+    _errorSlider = new QDoubleSpinBox();
     _errorSlider->setMinimum(1);
-    _errorSlider->setMaximum(1280*1024);
+    _errorSlider->setMaximum(3840000);
     _errorSlider->setValue(200);
     _errorSlider->setToolTip("Maximum tolerance (in pixels) admitted for Shape Areas");
 
@@ -180,6 +179,7 @@ QToolBar *Circles::toolBar() {
 }
 
 int Circles::exec() {
+    qDebug() << "[CIRCLES] - exec() - Started!";
     while(1) {
         if (_inBuffer.isEmpty()) {
             msleep(100);
@@ -189,74 +189,77 @@ int Circles::exec() {
                 _ellipseFound = false;
                 _circleFound = false;
                 Mat srcFrame = _inBuffer.dequeue();
-                Mat srcGray;
-                Mat dst = srcFrame;
-                Point frameCenter(srcFrame.cols/2, srcFrame.rows/2);
-                cvtColor(srcFrame, srcGray, CV_BGR2GRAY);
-                int kSizeInt = _kernelSize->value();
-                kSizeInt = (kSizeInt / 2) * 2 == kSizeInt ? kSizeInt - 1: kSizeInt;
-                Size kSize = Size(kSizeInt, kSizeInt);
-                if (_gaussianBlur->isChecked())
-                    GaussianBlur(srcGray, srcGray, kSize, _sigmaX->value(), _sigmaY->value());
-                else
-                    blur(srcGray, srcGray, kSize);
-                Canny(srcGray, _cannyFrame, _param2Slider->value(), _param1Slider->value());
-                Mat element = getStructuringElement(MORPH_ELLIPSE, kSize, Point((int)kSizeInt/2, (int)kSizeInt/2));
-                for(int i = 0; i < _erodeDilateSteps->value(); i++) {
+                if (!srcFrame.empty()) {
+                    Mat srcGray;
+                    Mat dst = srcFrame;
+                    Point frameCenter(srcFrame.cols/2, srcFrame.rows/2);
+                    if (srcFrame.channels() > 1)
+                        cvtColor(srcFrame, srcGray, CV_BGR2GRAY);
+                    int kSizeInt = _kernelSize->value();
+                    kSizeInt = (kSizeInt / 2) * 2 == kSizeInt ? kSizeInt - 1: kSizeInt;
+                    Size kSize = Size(kSizeInt, kSizeInt);
+                    if (_gaussianBlur->isChecked())
+                        GaussianBlur(srcGray, srcGray, kSize, _sigmaX->value(), _sigmaY->value());
+                    else
+                        blur(srcGray, srcGray, kSize);
+                    Canny(srcGray, _cannyFrame, _param2Slider->value(), _param1Slider->value());
+                    Mat element = getStructuringElement(MORPH_ELLIPSE, kSize, Point((int)kSizeInt/2, (int)kSizeInt/2));
+                    for(int i = 0; i < _erodeDilateSteps->value(); i++) {
+                        dilate(_cannyFrame, srcGray, element);
+                        erode(srcGray, _cannyFrame, element);
+                    }
                     dilate(_cannyFrame, srcGray, element);
-                    erode(srcGray, _cannyFrame, element);
-                }
-                dilate(_cannyFrame, srcGray, element);
-                _cannyFrame = srcGray;
-                vector<vector<Point> > contours;
-                vector<Vec4i> hierarchy;
-                switch(_countoursApprox->currentIndex()) {
-                case 0:
-                    findContours( srcGray, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_NONE, Point(0, 0) );
-                    break;
-                case 1:
-                    findContours( srcGray, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
-                    break;
-                case 2:
-                    findContours( srcGray, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_TC89_L1, Point(0, 0) );
-                    break;
-                case 3:
-                    findContours( srcGray, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_TC89_KCOS, Point(0, 0) );
-                    break;
-                }
-
-                for (unsigned int i = 0; i < contours.size(); i++) {
-                    double actual_area = fabs(contourArea(contours[i], false));
-                    Rect rect = boundingRect(contours[i]);
-                    if (actual_area < (_minRadiusSlider->value() * _minRadiusSlider->value() * M_PI)) {
-                        continue;
-                    }
-                    if (_maxRadiusSlider->value() > _minRadiusSlider->value() &&
-                            _maxRadiusSlider->value() < (rect.width/2 > rect.height/2 ? rect.width/2 : rect.height/2)) {
-                        continue;
-                    }
-                    double estimated_area =  M_PI * (rect.width / 2) * (rect.height / 2);
-                    double error = fabs(actual_area - estimated_area);
-                    if (error > ((float) _errorSlider->value()))
-                        continue;
-                    _ellipseFound = true;
-                    _ellipse.setCenter(Point(rect.x + rect.width/2, rect.y + rect.height/2));
-                    _ellipse.setHRadius(rect.width/2);
-                    _ellipse.setVRadius(rect.height/2);
-                    float maxEcc = 1.0 + (float) _eccentricityThreshold->value();
-                    float minEcc = 1.0 - (float) _eccentricityThreshold->value();
-                    RotatedRect ellipseRect = fitEllipse(contours[i]);
-                    if (_ellipse.getEccentricity() < minEcc || _ellipse.getEccentricity() > maxEcc) {
-                        ellipse(dst, ellipseRect, Scalar(255,0,0), 2);
-                    } else {
-                        ellipse(dst, ellipseRect, Scalar(0,255,0), 2);
-                        line(dst, frameCenter, _ellipse.getCenter(), Scalar(255,0,255), 1, CV_AA);
-                        circle(dst, _ellipse.getCenter(), 3, Scalar(0,0,255), 2);
-                        _circleFound = true;
+                    _cannyFrame = srcGray;
+                    vector<vector<Point> > contours;
+                    vector<Vec4i> hierarchy;
+                    switch(_countoursApprox->currentIndex()) {
+                    case 1:
+                        findContours( srcGray, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
+                        break;
+                    case 2:
+                        findContours( srcGray, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_TC89_L1, Point(0, 0) );
+                        break;
+                    case 3:
+                        findContours( srcGray, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_TC89_KCOS, Point(0, 0) );
+                        break;
+                    case 0:
+                    default:
+                        findContours( srcGray, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_NONE, Point(0, 0) );
                         break;
                     }
+                    for (unsigned int i = 0; i < contours.size(); i++) {
+                        double actual_area = fabs(contourArea(contours[i], false));
+                        Rect rect = boundingRect(contours[i]);
+                        if (actual_area < (_minRadiusSlider->value() * _minRadiusSlider->value() * M_PI)) {
+                            continue;
+                        }
+                        if (_maxRadiusSlider->value() > _minRadiusSlider->value() &&
+                                _maxRadiusSlider->value() < (rect.width/2 > rect.height/2 ? rect.width/2 : rect.height/2)) {
+                            continue;
+                        }
+                        double estimated_area =  M_PI * (rect.width / 2) * (rect.height / 2);
+                        double error = fabs(actual_area - estimated_area);
+                        if (error > ((float) _errorSlider->value()))
+                            continue;
+                        _ellipseFound = true;
+                        _ellipse.setCenter(Point(rect.x + rect.width/2, rect.y + rect.height/2));
+                        _ellipse.setHRadius(rect.width/2);
+                        _ellipse.setVRadius(rect.height/2);
+                        float maxEcc = 1.0 + (float) _eccentricityThreshold->value();
+                        float minEcc = 1.0 - (float) _eccentricityThreshold->value();
+                        RotatedRect ellipseRect = fitEllipse(contours[i]);
+                        if (_ellipse.getEccentricity() < minEcc || _ellipse.getEccentricity() > maxEcc) {
+                            ellipse(dst, ellipseRect, Scalar(255,0,0), 2);
+                        } else {
+                            ellipse(dst, ellipseRect, Scalar(0,255,0), 2);
+                            line(dst, frameCenter, _ellipse.getCenter(), Scalar(255,0,255), 1, CV_AA);
+                            circle(dst, _ellipse.getCenter(), 3, Scalar(0,0,255), 2);
+                            _circleFound = true;
+                            break;
+                        }
+                    }
+                    _outBuffer.enqueue(dst);
                 }
-                _outBuffer.enqueue(dst);
                 _inBuffMtx.unlock();
                 emit availableProcessedFrame();
                 _fps = 1000/_fpsTimer.elapsed();
@@ -269,11 +272,15 @@ int Circles::exec() {
 }
 
 void Circles::run() {
+    qDebug() << "[CIRCLES] - run() - Starting...";
     exec();
 }
 
 void Circles::stop() {
     qDebug() << "[CIRCLES] - stop() - Stopping...";
+    if(!_inBuffMtx.tryLock())
+        qWarning() << "[CIRCLES] - stop() - Trying to release locked Mutex";
+    _inBuffMtx.unlock();
     terminate();
 }
 

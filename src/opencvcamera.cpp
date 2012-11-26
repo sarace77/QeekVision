@@ -65,10 +65,13 @@ void OpenCVCamera::run() {
 }
 
 void OpenCVCamera::stop() {
-    qDebug() << "[CAMERA_THREAD::OPEN_CV_CAMERA] - Stopping...";
+    qDebug() << "[CAMERA_THREAD::OPEN_CV_CAMERA] - stop() - Stopping...";
     _startAction->setEnabled(true);
     _stopAction->setEnabled(false);
     _settingsAction->setEnabled(false);
+    if (!_mutex.tryLock())
+        qWarning() << "[CAMERA_THREAD::OPEN_CV_CAMERA] - stop() - Trying to release locked Mutex!";
+    _mutex.unlock();
     this->terminate();
 }
 

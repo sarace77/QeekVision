@@ -24,8 +24,8 @@ class Circles : public ProcessThread
     Q_OBJECT
 private:
     QCheckBox *_showCanny;
-    QDoubleSpinBox *_eccentricityThreshold, *_sigmaX, *_sigmaY;
-    QSpinBox  *_param1Slider, *_param2Slider, *_minRadiusSlider, *_maxRadiusSlider, *_errorSlider;
+    QDoubleSpinBox *_eccentricityThreshold, *_errorSlider, *_sigmaX, *_sigmaY;
+    QSpinBox  *_param1Slider, *_param2Slider, *_minRadiusSlider, *_maxRadiusSlider;
     QLabel *_eccentricityThresholdLabel, *_param1Label, *_param2Label, *_minRadiusLabel, *_maxRadiusLabel, *_errorLabel, *_sigmaLabel;
     QRadioButton *_normalBlur, *_gaussianBlur;
     QSlider *_kernelSize, *_erodeDilateSteps;

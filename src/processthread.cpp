@@ -19,7 +19,6 @@ void ProcessThread::enqueue(Mat frm) {
         _inBuffMtx.unlock();
     } else {
         qWarning() << "[PROCESS_THREAD] - enqueue() - Unable to lock Mutex";
-        return;
     }
 }
 

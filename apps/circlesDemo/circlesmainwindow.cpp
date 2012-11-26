@@ -93,5 +93,5 @@ void CirclesMainWindow::showFrame() {
     }
 
     if (process3ad->hasCanny())
-        imshow("Canny", process3ad->getCanny());
+        imshow("Canny", process3ad->getCanny());        
 }
