@@ -9,6 +9,7 @@
 #include <QLabel>
 #include <QMutex>
 #include <QQueue>
+#include <QRadioButton>
 #include <QThread>
 #include <QTime>
 #include <QToolBar>
@@ -31,8 +32,8 @@ protected:
     /// ToolBar Widgets
     QToolBar    *_threadToolBar;
     QAction     *_settingsAction, *_startAction, *_stopAction;
-    QLabel      *_subsystemLabel;
-    QComboBox   *_subsystemComboBox;
+    QLabel      *_imageFormat;
+    QRadioButton *_bgr, *_rgb;
 
     /// Internal Frame Buffer
     QMutex       _mutex;

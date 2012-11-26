@@ -4,6 +4,9 @@
 
 OpenCVCamera::OpenCVCamera() : CameraThread() {
     _camera = new VideoCapture();
+    _settingsAction->setEnabled(false);
+    _startAction->setEnabled(true);
+    _stopAction->setEnabled(false);
 }
 
 OpenCVCamera::~OpenCVCamera() {
@@ -13,7 +16,6 @@ OpenCVCamera::~OpenCVCamera() {
 }
 
 void OpenCVCamera::configure() {
-
 }
 
 int OpenCVCamera::exec() {
@@ -23,8 +25,10 @@ int OpenCVCamera::exec() {
         if (_mutex.tryLock(2000)) {
             static Mat img;
             _camera->read(img);
+            _cvMatbuffer.enqueue(img.clone());
             _mutex.unlock();
             _fps = 1000.0/myTimer.elapsed();
+            emit availableFrame();
             } else {
                 qWarning() << "[CAMERA_THREAD::OPEN_CV_CAMERA] - exec() - Unable to lock Mutex: ";
             }

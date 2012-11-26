@@ -15,8 +15,8 @@ float ProcessThread::getFrameRate() {
 
 void ProcessThread::enqueue(Mat frm) {
     if(_inBuffMtx.tryLock(2000)) {
-    _inBuffer.enqueue(frm);
-    _inBuffMtx.unlock();
+        _inBuffer.enqueue(frm);
+        _inBuffMtx.unlock();
     } else {
         qWarning() << "[PROCESS_THREAD] - enqueue() - Unable to lock Mutex";
         return;

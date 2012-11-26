@@ -1,7 +1,8 @@
 #include "circlesmainwindow.h"
 #include "ui_circlesmainwindow.h"
 
-#include "v4lcamera.h"
+//#include "v4lcamera.h"
+#include "opencvcamera.h"
 
 #include <opencv2/imgproc/imgproc.hpp>
 
@@ -14,7 +15,8 @@ CirclesMainWindow::CirclesMainWindow(QWidget *parent) :
     ui(new Ui::CirclesMainWindow)
 {
     ui->setupUi(this);
-    capture3ad = new V4LCamera();
+    //capture3ad = new V4LCamera();
+    capture3ad = new OpenCVCamera();
     process3ad = new Circles();
     addToolBar(capture3ad->toolBar());
     if(process3ad->hasToolBar()) {
@@ -50,9 +52,9 @@ CirclesMainWindow::~CirclesMainWindow() {
 void CirclesMainWindow::processFrame() {
     if(process3ad->hasToolBar())
         process3ad->toolBar()->setVisible(true);
-    src = capture3ad->getFrame().clone();
+    src = capture3ad->getFrame();
     process3ad->enqueue(src);
-    this->resize(src.cols + process3ad->toolBar()->width(), src.rows + 47 + capture3ad->toolBar()->size().height());
+    this->resize(src.cols + process3ad->toolBar()->width(), src.rows < 640 ? 640 : src.rows);
 }
 
 void CirclesMainWindow::showFrame() {
@@ -67,9 +69,6 @@ void CirclesMainWindow::showFrame() {
     circle(frame, center, 9, Scalar(255,0,255), 1);
     line (frame, v1, v2, Scalar(255,0,255), 1);
     line (frame, h1, h2, Scalar(255,0,255), 1);
-    while(frame.cols > 1600 || frame.rows > 1200) {
-        pyrDown(frame, frame, Size(frame.cols/2, frame.rows/2));
-    }
     ui->statusBar->showMessage(tr("FPS: %1").arg(process3ad->getFrameRate()));
     ui->label->setGeometry(0, 0, frame.cols, frame.rows);
     ui->label->setPixmap(QPixmap::fromImage(CameraThread::mat2qImage(frame)));
@@ -77,7 +76,7 @@ void CirclesMainWindow::showFrame() {
     ui->ellipseBox->setGeometry(0,0, ui->label->width(), 80);
     EllipseObject _ellipse = process3ad->getEllipse();
     if (process3ad->ellipseFound()) {
-        ellipseLabel->setText(QString("<H3>New Ellipse found!</H3>") + QString("degree: %1").arg((1.0 - _ellipse.getEccentricity())*360/6.28));
+        ellipseLabel->setText(QString("<H3><FONT COLOR=#FF0000>New Ellipse found!</FONT></H3>") + QString("degree: %1").arg((1.0 - _ellipse.getEccentricity())*360/6.28));
         ui->ellipseBox->setVisible(true);
     } else {
         ui->ellipseBox->setVisible(ui->ellipseBox->isVisible() && (dialogTimer.elapsed() < 250));
@@ -89,9 +88,12 @@ void CirclesMainWindow::showFrame() {
         ui->yRadius->setText(QString("%1").arg((int) _ellipse.getVRadius()));
         ui->centerDistance->setText(QString("%1").arg(_ellipse.getDistanceFromPoint(Point(frame.cols/2, frame.rows/2))));
         ui->circleDataBox->setVisible(true);
-        ellipseLabel->setText(QString("<H1>Circle found!</H1>")+ QString("degree: %1").arg((1.0 - _ellipse.getEccentricity())*360/6.28));
+        ellipseLabel->setText(QString("<H1><FONT COLOR=#00FF00>Circle found!</FONT></H1>")+ QString("degree: %1").arg((1.0 - _ellipse.getEccentricity())*360/6.28));
         dialogTimer.start();
     } else {
         ui->circleDataBox->setVisible(ui->circleDataBox->isVisible() && (dialogTimer.elapsed() < 500));
     }
+
+    if (process3ad->hasCanny())
+        imshow("Canny", process3ad->getCanny());
 }

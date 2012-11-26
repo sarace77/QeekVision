@@ -5,9 +5,15 @@
 #endif
 
 #include <QDebug>
+
+#include <opencv2/highgui/highgui.hpp>
+
+
 Circles::Circles(QObject *parent) : ProcessThread(parent) {
     _circlesToolBar = new QToolBar();
     _circlesToolBar->setObjectName("Circles toolbar");
+
+    _showCanny = new QCheckBox("Show Canny");
 
     _eccentricityThresholdLabel = new QLabel("Eccentricity Threshold");
     _eccentricityThreshold = new QDoubleSpinBox();
@@ -43,7 +49,7 @@ Circles::Circles(QObject *parent) : ProcessThread(parent) {
     _maxRadiusSlider = new QSpinBox();
     _maxRadiusSlider->setMinimum(0);
     _maxRadiusSlider->setMaximum(2000);
-    _maxRadiusSlider->setValue(300);
+    _maxRadiusSlider->setValue(600);
     _maxRadiusSlider->setToolTip("Maximum radius to be detected. If unknown, put zero as default.");
 
     _errorLabel = new QLabel("Area shape Tolerance");
@@ -53,7 +59,63 @@ Circles::Circles(QObject *parent) : ProcessThread(parent) {
     _errorSlider->setValue(200);
     _errorSlider->setToolTip("Maximum tolerance (in pixels) admitted for Shape Areas");
 
+    _blurTypeLabel = new QLabel("Blur type:");
+    _normalBlur = new QRadioButton("Standard Blur");
+    _gaussianBlur = new QRadioButton("Gaussian Blur");
+    _gaussianBlur->setChecked(true);
+    connect(_gaussianBlur, SIGNAL(toggled(bool)), this, SLOT(selectBlurType(bool)));
 
+    _kernelSizeLabel = new QLabel("Blur Kernel Size");
+    _kernelSize = new QSlider(Qt::Horizontal);
+    _kernelSize->setTickInterval(2);
+    _kernelSize->setTickPosition(QSlider::TicksBelow);
+    _kernelSize->setPageStep(2);
+    _kernelSize->setMinimum(3);
+    _kernelSize->setMaximum(15);
+    _kernelSize->setValue(9);
+    _kernelSize->setToolTip("It defines a (value x value) blur kernel");
+    _kernelSizeValue = new QLineEdit("9");
+    _kernelSizeValue->setAlignment(Qt::AlignRight);
+
+    _kernelWidget = new QWidget();
+    _kernelLayout = new QHBoxLayout();
+    _kernelLayout->addWidget(_kernelSize, 3);
+    _kernelLayout->addWidget(_kernelSizeValue, 1);
+    _kernelWidget->setLayout(_kernelLayout);
+    connect(_kernelSize, SIGNAL(valueChanged(int)), this, SLOT(sliderValueChanged(int)));
+
+    _sigmaLabel = new QLabel("Gaussian kernel standard deviation");
+    _sigmaX = new QDoubleSpinBox();
+    _sigmaX->setDecimals(2);
+    _sigmaX->setValue(2);
+    _sigmaX->setToolTip("Gaussian kernel standard deviation in X direction");
+    _sigmaY = new QDoubleSpinBox();
+    _sigmaY->setDecimals(2);
+    _sigmaY->setValue(2);
+    _sigmaY->setToolTip("Gaussian kernel standard deviation in X direction");
+    _sigmaWidget = new QWidget();
+    _sigmaLayout = new QHBoxLayout();
+    _sigmaLayout->addWidget(_sigmaX);
+    _sigmaLayout->addWidget(_sigmaY);
+    _sigmaWidget->setLayout(_sigmaLayout);
+
+    _countoursApproxLabel = new QLabel("Contours Approximation Type");
+    _countoursApprox = new QComboBox();
+    _countoursApprox->addItem("CV_CHAIN_APPROX_NONE");
+    _countoursApprox->addItem("CV_CHAIN_APPROX_SIMPLE");
+    _countoursApprox->addItem("CV_CHAIN_APPROX_TC89_L1");
+    _countoursApprox->addItem("CV_CHAIN_APPROX_TC89_KCOS");
+
+    _erodeDilateStepsLabel = new QLabel("Num of Erode/Dilate Steps");
+    _erodeDilateSteps = new QSlider(Qt::Horizontal);
+    _erodeDilateSteps->setMinimum(1);
+    _erodeDilateSteps->setMaximum(8);
+    _erodeDilateSteps->setValue(1);
+    _erodeDilateSteps->setTickInterval(2);
+    _erodeDilateSteps->setTickPosition(QSlider::TicksBelow);
+
+    _circlesToolBar->addWidget(_showCanny);
+    _circlesToolBar->addSeparator();
     _circlesToolBar->addWidget(_eccentricityThresholdLabel);
     _circlesToolBar->addWidget(_eccentricityThreshold);
     _circlesToolBar->addSeparator();
@@ -69,6 +131,20 @@ Circles::Circles(QObject *parent) : ProcessThread(parent) {
     _circlesToolBar->addSeparator();
     _circlesToolBar->addWidget(_errorLabel);
     _circlesToolBar->addWidget(_errorSlider);
+    _circlesToolBar->addSeparator();
+    _circlesToolBar->addWidget(_blurTypeLabel);
+    _circlesToolBar->addWidget(_normalBlur);
+    _circlesToolBar->addWidget(_gaussianBlur);
+    _circlesToolBar->addWidget(_kernelSizeLabel);
+    _circlesToolBar->addWidget(_kernelWidget);
+    _circlesToolBar->addWidget(_sigmaLabel);
+    _circlesToolBar->addWidget(_sigmaWidget);
+    _circlesToolBar->addSeparator();
+    _circlesToolBar->addWidget(_countoursApproxLabel);
+    _circlesToolBar->addWidget(_countoursApprox);
+    _circlesToolBar->addSeparator();
+    _circlesToolBar->addWidget(_erodeDilateStepsLabel);
+    _circlesToolBar->addWidget(_erodeDilateSteps);
 
     _ellipseFound = false;
 }
@@ -85,6 +161,14 @@ bool Circles::ellipseFound() {
 
 EllipseObject Circles::getEllipse() {
     return _ellipse;
+}
+
+Mat Circles::getCanny() {
+    return _cannyFrame;
+}
+
+bool Circles::hasCanny() {
+    return _showCanny->isChecked();
 }
 
 bool Circles::hasToolBar() {
@@ -109,12 +193,38 @@ int Circles::exec() {
                 Mat dst = srcFrame;
                 Point frameCenter(srcFrame.cols/2, srcFrame.rows/2);
                 cvtColor(srcFrame, srcGray, CV_BGR2GRAY);
-                GaussianBlur(srcGray, srcGray, Size(9,9), 2, 2);
-                Canny(srcGray, srcGray, _param2Slider->value(), _param1Slider->value());
-                dilate(srcGray, srcGray, Mat());
+                int kSizeInt = _kernelSize->value();
+                kSizeInt = (kSizeInt / 2) * 2 == kSizeInt ? kSizeInt - 1: kSizeInt;
+                Size kSize = Size(kSizeInt, kSizeInt);
+                if (_gaussianBlur->isChecked())
+                    GaussianBlur(srcGray, srcGray, kSize, _sigmaX->value(), _sigmaY->value());
+                else
+                    blur(srcGray, srcGray, kSize);
+                Canny(srcGray, _cannyFrame, _param2Slider->value(), _param1Slider->value());
+                Mat element = getStructuringElement(MORPH_ELLIPSE, kSize, Point((int)kSizeInt/2, (int)kSizeInt/2));
+                for(int i = 0; i < _erodeDilateSteps->value(); i++) {
+                    dilate(_cannyFrame, srcGray, element);
+                    erode(srcGray, _cannyFrame, element);
+                }
+                dilate(_cannyFrame, srcGray, element);
+                _cannyFrame = srcGray;
                 vector<vector<Point> > contours;
                 vector<Vec4i> hierarchy;
-                findContours( srcGray, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
+                switch(_countoursApprox->currentIndex()) {
+                case 0:
+                    findContours( srcGray, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_NONE, Point(0, 0) );
+                    break;
+                case 1:
+                    findContours( srcGray, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
+                    break;
+                case 2:
+                    findContours( srcGray, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_TC89_L1, Point(0, 0) );
+                    break;
+                case 3:
+                    findContours( srcGray, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_TC89_KCOS, Point(0, 0) );
+                    break;
+                }
+
                 for (unsigned int i = 0; i < contours.size(); i++) {
                     double actual_area = fabs(contourArea(contours[i], false));
                     Rect rect = boundingRect(contours[i]);
@@ -145,8 +255,6 @@ int Circles::exec() {
                         _circleFound = true;
                         break;
                     }
-//                    circle(dst, _ellipse.getCenter(), _minRadiusSlider->value(), Scalar(255,255,255));
-//                    circle(dst, _ellipse.getCenter(), _maxRadiusSlider->value(), Scalar(255,255,255));
                 }
                 _outBuffer.enqueue(dst);
                 _inBuffMtx.unlock();
@@ -167,4 +275,16 @@ void Circles::run() {
 void Circles::stop() {
     qDebug() << "[CIRCLES] - stop() - Stopping...";
     terminate();
+}
+
+void Circles::sliderValueChanged(int value) {
+    value = (value / 2) *2 == value ? value - 1: value;
+    _kernelSizeValue->setText(QString("%1").arg(value));
+}
+
+void Circles::selectBlurType(bool value) {
+    qDebug() << value;
+    _sigmaLabel->setEnabled(value);
+    _sigmaWidget->setEnabled(value);
+
 }
