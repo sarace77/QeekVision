@@ -1,7 +1,6 @@
 #include "circlesmainwindow.h"
 #include "ui_circlesmainwindow.h"
 
-//#include "v4lcamera.h"
 #include "opencvcamera.h"
 
 #include <opencv2/imgproc/imgproc.hpp>
@@ -15,7 +14,6 @@ CirclesMainWindow::CirclesMainWindow(QWidget *parent) :
     ui(new Ui::CirclesMainWindow)
 {
     ui->setupUi(this);
-    //capture3ad = new V4LCamera();
     capture3ad = new OpenCVCamera();
     process3ad = new Circles();
     addToolBar(capture3ad->toolBar());
@@ -35,7 +33,7 @@ CirclesMainWindow::CirclesMainWindow(QWidget *parent) :
     ellipseLayout->addWidget(ellipseLabel);
     ellipseLayout->setAlignment(Qt::AlignHCenter);
     ui->ellipseBox->setLayout(ellipseLayout);
-    this->resize(800,60);
+    this->resize(400,60);
 }
 
 CirclesMainWindow::~CirclesMainWindow() {

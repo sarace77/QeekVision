@@ -30,9 +30,7 @@ V4LCamera::V4LCamera() {
     /// V4L Buffer Type init
     _type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
-
     connect(_settingsAction, SIGNAL(triggered()), _configEngine, SLOT(configRequest()));
-
 }
 
 V4LCamera::~V4LCamera() {
