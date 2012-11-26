@@ -182,7 +182,7 @@ int Circles::exec() {
     qDebug() << "[CIRCLES] - exec() - Started!";
     while(1) {
         if (_inBuffer.isEmpty()) {
-            msleep(100);
+            msleep(50);
         } else {
             if(_inBuffMtx.tryLock(2000)) {
                 _fpsTimer.start();

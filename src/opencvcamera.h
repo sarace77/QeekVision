@@ -6,6 +6,9 @@
 
 #include "camerathread.h"
 
+#include <QCheckBox>
+#include <QTimer>
+
 using namespace cv;
 
 class OpenCVCamera : public CameraThread
@@ -19,12 +22,19 @@ private:
     /// Video Capture device
     VideoCapture *_camera;
 
+    /// Watchdog
+    QTimer _watchdog;
+
+    /// Enable Verbose
+    QCheckBox *_enableVerboseMode;
+
 private:
     int exec();
     void run();
 
 private slots:
     void configure();
+    void timeout();
 
 public:
     OpenCVCamera();

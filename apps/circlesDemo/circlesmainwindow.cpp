@@ -33,7 +33,7 @@ CirclesMainWindow::CirclesMainWindow(QWidget *parent) :
     ellipseLayout->addWidget(ellipseLabel);
     ellipseLayout->setAlignment(Qt::AlignHCenter);
     ui->ellipseBox->setLayout(ellipseLayout);
-    this->resize(400,60);
+    this->resize(500,60);
 }
 
 CirclesMainWindow::~CirclesMainWindow() {

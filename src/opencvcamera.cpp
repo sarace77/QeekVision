@@ -4,7 +4,12 @@
 
 OpenCVCamera::OpenCVCamera() : CameraThread() {
     _camera = new VideoCapture();
+
+    _enableVerboseMode = new QCheckBox("Enable Verbose");
+    _threadToolBar->addSeparator();
+    _threadToolBar->addWidget(_enableVerboseMode);
     connect(_settingsAction, SIGNAL(triggered()), this, SLOT(configure()));
+    connect(&_watchdog, SIGNAL(timeout()), this, SLOT(timeout()));
 }
 
 OpenCVCamera::~OpenCVCamera() {
@@ -21,11 +26,26 @@ void OpenCVCamera::configure() {
     _stopAction->setEnabled(false);
 }
 
+void OpenCVCamera::timeout() {
+    qWarning() << "[CAMERA_THREAD::OPEN_CV_CAMERA] - timeout() - WatchDog timeout!";
+    if (_enableVerboseMode->isChecked())
+        qDebug() << "[CAMERA_THREAD::OPEN_CV_CAMERA] - timeout() - Trying to stop!";
+    stop();
+    if (_enableVerboseMode->isChecked())
+        qDebug() << "[CAMERA_THREAD::OPEN_CV_CAMERA] - timeout() - Trying to start again!";
+    start();
+}
+
 int OpenCVCamera::exec() {
-    qDebug() << "[CAMERA_THREAD::OPEN_CV_CAMERA] - exec() - Started!";
+    if (_enableVerboseMode->isChecked()) {
+        qDebug() << "[CAMERA_THREAD::OPEN_CV_CAMERA] - exec() - Started!";
+        qDebug() << "[CAMERA_THREAD::OPEN_CV_CAMERA] - exec() - Frame size: " << getWidth() << "x" << getHeight();
+    }
     while(1) {
+        _watchdog.start(5000);
         myTimer.start();
         if (_mutex.tryLock(2000)) {
+            _watchdog.start(5000);
             static Mat img;
             _camera->read(img);
             _cvMatbuffer.enqueue(img);
@@ -33,9 +53,13 @@ int OpenCVCamera::exec() {
             _mutex.unlock();
             _fps = 1000.0/myTimer.elapsed();
             emit availableFrame();
-            } else {
-                qWarning() << "[CAMERA_THREAD::OPEN_CV_CAMERA] - exec() - Unable to lock Mutex: ";
-            }
+        } else {
+            qWarning() << "[CAMERA_THREAD::OPEN_CV_CAMERA] - exec() - Unable to lock Mutex: ";
+        }
+        int elapsedTime = myTimer.elapsed() > 0? myTimer.elapsed() : 0;
+        msleep( elapsedTime < 20 ? 20 - elapsedTime : 1 );
+        if (_enableVerboseMode->isChecked())
+            qDebug() << "[CAMERA_THREAD::OPEN_CV_CAMERA] - exec() - Framerate: " << 1000.0 / ((float) elapsedTime);
     }
     return 0;
 }
@@ -45,7 +69,8 @@ void OpenCVCamera::run() {
     _stopAction->setEnabled(true);
     _settingsAction->setEnabled(false);
     if (_camera->isOpened()) {
-        qDebug() << "[CAMERA_THREAD::OPEN_CV_CAMERA] - run() - Device already opened!";
+        if (_enableVerboseMode->isChecked())
+            qDebug() << "[CAMERA_THREAD::OPEN_CV_CAMERA] - run() - Device already opened!";
         exec();
     } else {
         if (_camera->open(_deviceName.toAscii().constData())){
@@ -53,9 +78,11 @@ void OpenCVCamera::run() {
             exec();
         } else {
             qWarning() << "[CAMERA_THREAD::OPEN_CV_CAMERA] - run() - Unable to open device: " << _deviceName;
-            qDebug() << "[CAMERA_THREAD::OPEN_CV_CAMERA] - run() - Trying to open first device";
+            if (_enableVerboseMode->isChecked())
+                qDebug() << "[CAMERA_THREAD::OPEN_CV_CAMERA] - run() - Trying to open first device";
             if(_camera->open(0))  {
-                qDebug() << "[CAMERA_THREAD::OPEN_CV_CAMERA] - run() - camera0 opened!";
+                if (_enableVerboseMode->isChecked())
+                    qDebug() << "[CAMERA_THREAD::OPEN_CV_CAMERA] - run() - camera0 opened!";
                 exec();
             } else {
                 qWarning() << "[CAMERA_THREAD::OPEN_CV_CAMERA] - run() - Unable to open default Capture Device!";
