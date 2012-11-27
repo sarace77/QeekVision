@@ -19,7 +19,7 @@ Circles::Circles(QObject *parent) : ProcessThread(parent) {
     _eccentricityThreshold->setDecimals(3);
     _eccentricityThreshold->setMinimum(0.001);
     _eccentricityThreshold->setMaximum(0.5);
-    _eccentricityThreshold->setValue(0.01);
+    _eccentricityThreshold->setValue(0.07);
     _eccentricityThreshold->setSingleStep(0.001);
     _eccentricityThreshold->setToolTip("Max/Min Radius Percentage Ratio for considering ellipse an (approximated) circle");
 
@@ -180,18 +180,20 @@ QToolBar *Circles::toolBar() {
 
 int Circles::exec() {
     qDebug() << "[CIRCLES] - exec() - Started!";
+    Mat srcFrame, srcGray, dst;
     while(1) {
         if (_inBuffer.isEmpty()) {
             msleep(50);
         } else {
-            if(_inBuffMtx.tryLock(2000)) {
+            _watchdog.start(1000);
+//            if(_inBuffMtx.tryLock(2000)) {
                 _fpsTimer.start();
                 _ellipseFound = false;
                 _circleFound = false;
-                Mat srcFrame = _inBuffer.dequeue();
+                if (!_inBuffer.isEmpty())
+                srcFrame = _inBuffer.dequeue();
                 if (!srcFrame.empty()) {
-                    Mat srcGray;
-                    Mat dst = srcFrame;
+                    dst = srcFrame;
                     Point frameCenter(srcFrame.cols/2, srcFrame.rows/2);
                     if (srcFrame.channels() > 1)
                         cvtColor(srcFrame, srcGray, CV_BGR2GRAY);
@@ -211,7 +213,9 @@ int Circles::exec() {
                     dilate(_cannyFrame, srcGray, element);
                     _cannyFrame = srcGray;
                     vector<vector<Point> > contours;
+                    contours.clear();
                     vector<Vec4i> hierarchy;
+                    hierarchy.clear();
                     switch(_countoursApprox->currentIndex()) {
                     case 1:
                         findContours( srcGray, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
@@ -260,12 +264,12 @@ int Circles::exec() {
                     }
                     _outBuffer.enqueue(dst);
                 }
-                _inBuffMtx.unlock();
+//                _inBuffMtx.unlock();
                 emit availableProcessedFrame();
                 _fps = 1000/_fpsTimer.elapsed();
-            } else {
-                qWarning() << "[CIRCLES] - exec() - Unable to lock Mutex";
-            }
+//            } else {
+//                qWarning() << "[CIRCLES] - exec() - Unable to lock Mutex";
+//            }
         }
     }
     return 0;

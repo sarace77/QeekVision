@@ -7,6 +7,7 @@
 #include <QQueue>
 #include <QThread>
 #include <QTime>
+#include <QTimer>
 #include <QToolBar>
 
 using namespace cv;
@@ -22,6 +23,12 @@ protected:
     QMutex _inBuffMtx;
     float _fps;
     QTime _fpsTimer;
+    QTimer _watchdog;
+
+
+protected slots:
+    void watchdogTimeout();
+
 public:
     ProcessThread(QObject *parent = 0);
 

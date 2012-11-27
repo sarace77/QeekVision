@@ -7,6 +7,7 @@ ProcessThread::ProcessThread(QObject *parent) : QThread(parent) {
     _inBuffer.clear();
     _outBuffer.clear();
     _fps = 0.0;
+    connect(&_watchdog, SIGNAL(timeout()), this, SLOT(watchdogTimeout()));
 }
 
 float ProcessThread::getFrameRate() {
@@ -14,12 +15,12 @@ float ProcessThread::getFrameRate() {
 }
 
 void ProcessThread::enqueue(Mat frm) {
-    if(_inBuffMtx.tryLock(2000)) {
+//    if(_inBuffMtx.tryLock(2000)) {
         _inBuffer.enqueue(frm);
-        _inBuffMtx.unlock();
-    } else {
-        qWarning() << "[PROCESS_THREAD] - enqueue() - Unable to lock Mutex";
-    }
+//        _inBuffMtx.unlock();
+//    } else {
+//        qWarning() << "[PROCESS_THREAD] - enqueue() - Unable to lock Mutex";
+//    }
 }
 
 Mat ProcessThread::dequeue() {
@@ -30,3 +31,11 @@ Mat ProcessThread::dequeue() {
     return _outBuffer.dequeue();
 }
 
+void ProcessThread::watchdogTimeout() {
+    qWarning() << "[PROCESS_THREAD] - watchdogTimeout() - Trying to restart locked service";
+//    this->terminate();
+    //_inBuffer.clear();
+    _inBuffer.dequeue();
+//    this->start();
+//    _inBuffMtx.unlock();
+}
