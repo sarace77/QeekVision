@@ -23,7 +23,7 @@ class Circles : public ProcessThread
 {
     Q_OBJECT
 private:
-    QCheckBox *_showCanny;
+    QCheckBox *_showCanny, *_showBlur;
     QDoubleSpinBox *_eccentricityThreshold, *_errorSlider, *_sigmaX, *_sigmaY;
     QSpinBox  *_param1Slider, *_param2Slider, *_minRadiusSlider, *_maxRadiusSlider;
     QLabel *_eccentricityThresholdLabel, *_param1Label, *_param2Label, *_minRadiusLabel, *_maxRadiusLabel, *_errorLabel, *_sigmaLabel;
@@ -31,14 +31,14 @@ private:
     QSlider *_kernelSize, *_erodeDilateSteps;
     QLabel *_kernelSizeLabel, *_blurTypeLabel, *_countoursApproxLabel, *_erodeDilateStepsLabel;
     QLineEdit *_kernelSizeValue;
-    QWidget *_kernelWidget, *_sigmaWidget;
-    QHBoxLayout *_kernelLayout, *_sigmaLayout, *_imageFormatLayout;
+    QWidget *_kernelWidget, *_showWidget, *_sigmaWidget;
+    QHBoxLayout *_imageFormatLayout, *_kernelLayout, *_showLayout, *_sigmaLayout;
     QComboBox *_countoursApprox;
     QToolBar *_circlesToolBar;
     EllipseObject _ellipse;
     bool _circleFound, _ellipseFound;
 
-    Mat _cannyFrame;
+    Mat blurFrame, cannyFrame;
 
 private slots:
     void sliderValueChanged(int value);
@@ -54,8 +54,10 @@ public:
     ~Circles();
 
     Mat getCanny();
+    Mat getBlur();
     bool hasToolBar();
-    bool hasCanny();
+    bool hasBlurImage();
+    bool hasCannyImage();
     QToolBar *toolBar();
     bool circleFound();
     bool ellipseFound();

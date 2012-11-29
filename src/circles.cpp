@@ -13,6 +13,12 @@ Circles::Circles(QObject *parent) : ProcessThread(parent) {
     _circlesToolBar->setObjectName("Circles toolbar");
 
     _showCanny = new QCheckBox("Show Canny");
+    _showBlur = new QCheckBox("Show Blurred Image");
+    _showWidget = new QWidget();
+    _showLayout = new QHBoxLayout();
+    _showLayout->addWidget(_showBlur);
+    _showLayout->addWidget(_showCanny);
+    _showWidget->setLayout(_showLayout);
 
     _eccentricityThresholdLabel = new QLabel("Eccentricity Threshold");
     _eccentricityThreshold = new QDoubleSpinBox();
@@ -39,29 +45,29 @@ Circles::Circles(QObject *parent) : ProcessThread(parent) {
 
     _minRadiusLabel = new QLabel("MinRadius");
     _minRadiusSlider = new QSpinBox();
-    _minRadiusSlider->setMinimum(0);
-    _minRadiusSlider->setMaximum(2000);
-    _minRadiusSlider->setValue(25);
+    _minRadiusSlider->setMinimum(100);
+    _minRadiusSlider->setMaximum(500);
+    _minRadiusSlider->setValue(150);
     _minRadiusSlider->setToolTip("Minimum radius to be detected. If unknown, put zero as default.");
 
     _maxRadiusLabel = new QLabel("MaxRadius");
     _maxRadiusSlider = new QSpinBox();
-    _maxRadiusSlider->setMinimum(0);
-    _maxRadiusSlider->setMaximum(2000);
-    _maxRadiusSlider->setValue(600);
+    _maxRadiusSlider->setMinimum(100);
+    _maxRadiusSlider->setMaximum(500);
+    _maxRadiusSlider->setValue(250);
     _maxRadiusSlider->setToolTip("Maximum radius to be detected. If unknown, put zero as default.");
 
     _errorLabel = new QLabel("Area shape Tolerance");
     _errorSlider = new QDoubleSpinBox();
     _errorSlider->setMinimum(1);
     _errorSlider->setMaximum(3840000);
-    _errorSlider->setValue(200);
+    _errorSlider->setValue(1000);
     _errorSlider->setToolTip("Maximum tolerance (in pixels) admitted for Shape Areas");
 
     _blurTypeLabel = new QLabel("Blur type:");
     _normalBlur = new QRadioButton("Standard Blur");
     _gaussianBlur = new QRadioButton("Gaussian Blur");
-    _gaussianBlur->setChecked(true);
+    _normalBlur->setChecked(true);
     connect(_gaussianBlur, SIGNAL(toggled(bool)), this, SLOT(selectBlurType(bool)));
 
     _kernelSizeLabel = new QLabel("Blur Kernel Size");
@@ -70,10 +76,10 @@ Circles::Circles(QObject *parent) : ProcessThread(parent) {
     _kernelSize->setTickPosition(QSlider::TicksBelow);
     _kernelSize->setPageStep(2);
     _kernelSize->setMinimum(3);
-    _kernelSize->setMaximum(15);
-    _kernelSize->setValue(9);
+    _kernelSize->setMaximum(60);
+    _kernelSize->setValue(30);
     _kernelSize->setToolTip("It defines a (value x value) blur kernel");
-    _kernelSizeValue = new QLineEdit("9");
+    _kernelSizeValue = new QLineEdit(QString("%1").arg(_kernelSize->value()));
     _kernelSizeValue->setAlignment(Qt::AlignRight);
 
     _kernelWidget = new QWidget();
@@ -113,7 +119,7 @@ Circles::Circles(QObject *parent) : ProcessThread(parent) {
     _erodeDilateSteps->setTickInterval(2);
     _erodeDilateSteps->setTickPosition(QSlider::TicksBelow);
 
-    _circlesToolBar->addWidget(_showCanny);
+    _circlesToolBar->addWidget(_showWidget);
     _circlesToolBar->addSeparator();
     _circlesToolBar->addWidget(_eccentricityThresholdLabel);
     _circlesToolBar->addWidget(_eccentricityThreshold);
@@ -163,10 +169,18 @@ EllipseObject Circles::getEllipse() {
 }
 
 Mat Circles::getCanny() {
-    return _cannyFrame;
+    return cannyFrame;
 }
 
-bool Circles::hasCanny() {
+Mat Circles::getBlur() {
+    return blurFrame;
+}
+
+bool Circles::hasBlurImage() {
+    return _showBlur->isChecked();
+}
+
+bool Circles::hasCannyImage() {
     return _showCanny->isChecked();
 }
 
@@ -195,8 +209,7 @@ int Circles::exec() {
                 if (!srcFrame.empty()) {
                     dst = srcFrame;
                     Point frameCenter(srcFrame.cols/2, srcFrame.rows/2);
-                    if (srcFrame.channels() > 1)
-                        cvtColor(srcFrame, srcGray, CV_BGR2GRAY);
+                    cvtColor(srcFrame, srcGray, CV_BGR2GRAY);
                     int kSizeInt = _kernelSize->value();
                     kSizeInt = (kSizeInt / 2) * 2 == kSizeInt ? kSizeInt - 1: kSizeInt;
                     Size kSize = Size(kSizeInt, kSizeInt);
@@ -204,14 +217,16 @@ int Circles::exec() {
                         GaussianBlur(srcGray, srcGray, kSize, _sigmaX->value(), _sigmaY->value());
                     else
                         blur(srcGray, srcGray, kSize);
-                    Canny(srcGray, _cannyFrame, _param2Slider->value(), _param1Slider->value());
+                    blurFrame = srcGray.clone();
+                    threshold(srcGray, srcGray, 20, 255, CV_THRESH_BINARY);
+                    Canny(srcGray, srcGray, _param2Slider->value(), _param1Slider->value());
+                    cannyFrame = srcGray.clone();
                     Mat element = getStructuringElement(MORPH_ELLIPSE, kSize, Point((int)kSizeInt/2, (int)kSizeInt/2));
                     for(int i = 0; i < _erodeDilateSteps->value(); i++) {
-                        dilate(_cannyFrame, srcGray, element);
-                        erode(srcGray, _cannyFrame, element);
+                        dilate(srcGray, srcGray, element);
+                        erode(srcGray, srcGray, element);
                     }
-                    dilate(_cannyFrame, srcGray, element);
-                    _cannyFrame = srcGray;
+                    dilate(srcGray, srcGray, element);
                     vector<vector<Point> > contours;
                     contours.clear();
                     vector<Vec4i> hierarchy;

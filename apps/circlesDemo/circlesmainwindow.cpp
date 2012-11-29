@@ -92,6 +92,8 @@ void CirclesMainWindow::showFrame() {
         ui->circleDataBox->setVisible(ui->circleDataBox->isVisible() && (dialogTimer.elapsed() < 500));
     }
 
-    if (process3ad->hasCanny())
+    if (process3ad->hasCannyImage())
         imshow("Canny", process3ad->getCanny());        
+    if (process3ad->hasBlurImage())
+        imshow("Canny", process3ad->getBlur());
 }
