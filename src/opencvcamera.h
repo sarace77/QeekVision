@@ -22,11 +22,10 @@ private:
     /// Video Capture device
     VideoCapture *_camera;
 
-    /// Watchdog
-    QTimer _watchdog;
-
     /// Enable Verbose
     QCheckBox *_enableVerboseMode;
+
+    int _width_, _height_;
 
 private:
     int exec();
@@ -34,7 +33,6 @@ private:
 
 private slots:
     void configure();
-    void timeout();
 
 public:
     OpenCVCamera();

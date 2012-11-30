@@ -23,7 +23,7 @@ CirclesMainWindow::CirclesMainWindow(QWidget *parent) :
     }
     connect(capture3ad, SIGNAL(started()), process3ad, SLOT(start()));
     connect(capture3ad, SIGNAL(availableFrame()), this, SLOT(processFrame()));
-    connect(capture3ad, SIGNAL(terminated()), process3ad, SLOT(terminate()));
+    connect(capture3ad, SIGNAL(terminated()), process3ad, SLOT(stop()));
     connect(process3ad, SIGNAL(availableProcessedFrame()), this, SLOT(showFrame()));
     ui->circleDataBox->setVisible(false);
     ui->ellipseBox->setVisible(false);
@@ -92,8 +92,8 @@ void CirclesMainWindow::showFrame() {
         ui->circleDataBox->setVisible(ui->circleDataBox->isVisible() && (dialogTimer.elapsed() < 500));
     }
 
-    if (process3ad->hasCannyImage())
-        imshow("Canny", process3ad->getCanny());        
-    if (process3ad->hasBlurImage())
-        imshow("Canny", process3ad->getBlur());
+    if (process3ad->hasCannyFrame())
+        imshow("Canny", process3ad->getCannyFrame());
+    if (process3ad->hasBlurredFrame())
+        imshow("Canny", process3ad->getBlurredFrame());
 }
