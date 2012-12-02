@@ -1,10 +1,11 @@
 #ifndef CIRCLESMAINWINDOW_H
 #define CIRCLESMAINWINDOW_H
 
-#include <QMainWindow>
-#include <QTime>
+#include <QDialog>
 #include <QHBoxLayout>
 #include <QLabel>
+#include <QMainWindow>
+#include <QTime>
 
 #include "opencvcamera.h"
 #include "circles.h"
@@ -23,8 +24,9 @@ private:
     Circles *process3ad;
     Mat src;
     QTime dialogTimer;
-    QHBoxLayout *ellipseLayout;
-    QLabel  *ellipseLabel;
+    QDialog *blurDialog, *cannyDialog;
+    QHBoxLayout *blurLayout, *cannyLayout, *ellipseLayout;
+    QLabel  *blurLabel, *cannyLabel, *ellipseLabel;
 private slots:
     void processFrame();
     void showFrame();

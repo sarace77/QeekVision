@@ -34,6 +34,18 @@ CirclesMainWindow::CirclesMainWindow(QWidget *parent) :
     ellipseLayout->setAlignment(Qt::AlignHCenter);
     ui->ellipseBox->setLayout(ellipseLayout);
     this->resize(500,60);
+
+    blurDialog = new QDialog();
+    blurLabel = new QLabel("");
+    blurLayout = new QHBoxLayout();
+    cannyDialog = new QDialog();
+    cannyLabel = new QLabel("");
+    cannyLayout = new QHBoxLayout();
+
+    blurLayout->addWidget(blurLabel);
+    blurDialog->setLayout(blurLayout);
+    cannyLayout->addWidget(cannyLabel);
+    cannyDialog->setLayout(cannyLayout);
 }
 
 CirclesMainWindow::~CirclesMainWindow() {
@@ -92,8 +104,24 @@ void CirclesMainWindow::showFrame() {
         ui->circleDataBox->setVisible(ui->circleDataBox->isVisible() && (dialogTimer.elapsed() < 500));
     }
 
-    if (process3ad->hasCannyFrame())
-        imshow("Canny", process3ad->getCannyFrame());
-    if (process3ad->hasBlurredFrame())
-        imshow("Canny", process3ad->getBlurredFrame());
+    if (process3ad->hasCannyFrame()) {
+        Mat cannyFrame = process3ad->getCannyFrame();
+        cvtColor(cannyFrame, cannyFrame, CV_GRAY2RGB);
+        cannyLabel->setPixmap(QPixmap::fromImage(CameraThread::mat2qImage(cannyFrame)));
+        if (cannyDialog->isHidden())
+            cannyDialog->show();
+    } else {
+        if (!cannyDialog->isHidden())
+            cannyDialog->hide();
+    }
+    if (process3ad->hasBlurredFrame()) {
+        Mat blurFrame = process3ad->getBlurredFrame();
+        cvtColor(blurFrame, blurFrame, CV_GRAY2RGB);
+        blurLabel->setPixmap(QPixmap::fromImage(CameraThread::mat2qImage(blurFrame)));
+        if (blurDialog->isHidden())
+            blurDialog->show();
+    } else {
+        if (!blurDialog->isHidden())
+            blurDialog->hide();
+    }
 }
