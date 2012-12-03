@@ -28,8 +28,8 @@ private:
     QComboBox *_countoursApprox;
     QDoubleSpinBox *_eccentricityThreshold, *_errorSlider, *_sigmaX, *_sigmaY;
     QHBoxLayout *_imageFormatLayout, *_kernelLayout, *_showLayout, *_sigmaLayout, *_thresholdLayout;
-    QLabel *_blurTypeLabel, *_countoursApproxLabel, *_eccentricityThresholdLabel, *_erodeDilateStepsLabel,
-            *_kernelSizeLabel, *_param1Label, *_param2Label, *_minRadiusLabel, *_maxRadiusLabel, *_errorLabel, *_sigmaLabel;
+    QLabel *_blurTypeLabel, *_countoursApproxLabel, *_eccentricityThresholdLabel, *_erodeDilateStepsLabel, *_errorLabel,
+            *_kernelSizeLabel, *_minRadiusLabel, *_maxRadiusLabel, *_param1Label, *_param2Label, *_sigmaLabel, *_thresholdLabel;
     QLineEdit *_kernelSizeValue, *_thresholdValue;
     QRadioButton *_standardBlur, *_gaussianBlur;
     QSpinBox  *_minRadiusSlider, *_maxRadiusSlider, *_param1Slider, *_param2Slider;

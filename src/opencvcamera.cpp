@@ -4,10 +4,10 @@
 
 OpenCVCamera::OpenCVCamera() : CameraThread() {
     _camera = new VideoCapture();
-
     _enableVerboseMode = new QCheckBox("Enable Verbose");
     _threadToolBar->addSeparator();
     _threadToolBar->addWidget(_enableVerboseMode);
+
     connect(_settingsAction, SIGNAL(triggered()), this, SLOT(configure()));
 }
 

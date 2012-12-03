@@ -42,6 +42,17 @@
       <height>180</height>
      </rect>
     </property>
+    <property name="font">
+     <font>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color: #FF00FF;
+
+</string>
+    </property>
     <property name="title">
      <string>Circle Data</string>
     </property>
@@ -51,7 +62,7 @@
        <x>10</x>
        <y>30</y>
        <width>201</width>
-       <height>25</height>
+       <height>28</height>
       </rect>
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout">
@@ -76,7 +87,7 @@
        <x>10</x>
        <y>60</y>
        <width>201</width>
-       <height>25</height>
+       <height>28</height>
       </rect>
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout2">
@@ -111,7 +122,7 @@
        <x>10</x>
        <y>120</y>
        <width>201</width>
-       <height>25</height>
+       <height>28</height>
       </rect>
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout4">
@@ -146,7 +157,7 @@
        <x>10</x>
        <y>90</y>
        <width>201</width>
-       <height>25</height>
+       <height>28</height>
       </rect>
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout3">
@@ -196,7 +207,7 @@
      <x>0</x>
      <y>0</y>
      <width>400</width>
-     <height>21</height>
+     <height>24</height>
     </rect>
    </property>
   </widget>

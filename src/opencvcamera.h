@@ -25,6 +25,7 @@ private:
     /// Enable Verbose
     QCheckBox *_enableVerboseMode;
 
+    /// Frame Size
     int _width_, _height_;
 
 private:

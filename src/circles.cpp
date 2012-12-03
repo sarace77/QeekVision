@@ -44,6 +44,7 @@ Circles::Circles(QObject *parent) : ProcessThread(parent) {
     _sigmaLayout = new QHBoxLayout();
     _sigmaWidget = new QWidget();
     _standardBlur = new QRadioButton("Standard Blur");
+    _thresholdLabel = new QLabel("Main Threshold value");
     _thresholdLayout = new QHBoxLayout();
     _thresholdSlider = new QSlider(Qt::Horizontal);
     _thresholdValue = new QLineEdit();
@@ -120,10 +121,13 @@ Circles::Circles(QObject *parent) : ProcessThread(parent) {
     _param2Slider->setMaximum(255);
     _param2Slider->setValue(40);
 
+    _sigmaLabel->setEnabled(false);
     _sigmaX->setDecimals(2);
     _sigmaX->setValue(2);
+    _sigmaX->setEnabled(false);
     _sigmaY->setDecimals(2);
     _sigmaY->setValue(2);
+    _sigmaY->setEnabled(false);
 
     _standardBlur->setChecked(true);
 
@@ -143,6 +147,7 @@ Circles::Circles(QObject *parent) : ProcessThread(parent) {
     _circlesToolBar->addWidget(_sigmaLabel);
     _circlesToolBar->addWidget(_sigmaWidget);
     _circlesToolBar->addSeparator();
+    _circlesToolBar->addWidget(_thresholdLabel);
     _circlesToolBar->addWidget(_thresholdWidget);
     _circlesToolBar->addSeparator();
     _circlesToolBar->addWidget(_param1Label);
@@ -370,7 +375,8 @@ void Circles::kernelValueChanged(int value) {
 
 void Circles::selectBlurType(bool value) {
     _sigmaLabel->setEnabled(value);
-    _sigmaWidget->setEnabled(value);
+    _sigmaX->setEnabled(value);
+    _sigmaY->setEnabled(value);
 }
 
 void Circles::thresholdValueChanged(int value) {
