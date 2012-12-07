@@ -73,19 +73,19 @@ TrackFollowerDemo::TrackFollowerDemo(QWidget *parent) : QMainWindow(parent), ui(
     canny1Widget->setLayout(canny1Layout);
     canny1Slider->setMaximum(255);
     canny1Slider->setMinimum(1);
-    canny1Slider->setValue(40);
+    canny1Slider->setValue(127);
     canny1SpinBox->setMaximum(255);
     canny1SpinBox->setMinimum(1);
-    canny1SpinBox->setValue(40);
+    canny1SpinBox->setValue(127);
     canny2Layout->addWidget(canny2Slider);
     canny2Layout->addWidget(canny2SpinBox);
     canny2Widget->setLayout(canny2Layout);
     canny2Slider->setMaximum(255);
     canny2Slider->setMinimum(1);
-    canny2Slider->setValue(80);
+    canny2Slider->setValue(254);
     canny2SpinBox->setMaximum(255);
     canny2SpinBox->setMinimum(1);
-    canny2SpinBox->setValue(80);
+    canny2SpinBox->setValue(254);
     countoursApproxType->addItem("CV_CHAIN_APPROX_NONE");
     countoursApproxType->addItem("CV_CHAIN_APPROX_SIMPLE");
     countoursApproxType->addItem("CV_CHAIN_APPROX_TC89_L1");
@@ -177,9 +177,8 @@ void TrackFollowerDemo::showFrame() {
     fpsTimer.start();
 
     element = getStructuringElement(MORPH_DILATE, Size(blurSlider->value(), blurSlider->value()), Point(blurSlider->value()/2, blurSlider->value()/2));
-    src = capture3ad->getFrame().clone();
+    src = capture3ad->getFrame();
     drawingFrame = Mat::zeros( src.size(), CV_8UC3 );
-
     if (!secondFrameAcquired) {
         setGeometry(80, 80, 640, maskLoaded ? 1023 : 543);
     } else {
@@ -201,7 +200,7 @@ void TrackFollowerDemo::showFrame() {
         QPixmap p = QPixmap::fromImage(CameraThread::mat2qImage(secondFrame));
         ui->secondFrameLabel->setPixmap(p.scaled(640, 480, Qt::KeepAspectRatio));
         Mat srcGray = firstFrame.clone();
-        blur(srcGray, srcGray, Size(blurSlider->value(), blurSlider->value()));
+        absdiff(srcGray, secondFrame, outputFrame);
         switch(threshType->currentIndex()) {
         case 1:
             thrType = CV_THRESH_BINARY_INV;
@@ -218,11 +217,14 @@ void TrackFollowerDemo::showFrame() {
         default:
             break;
         }
+        blur(outputFrame, srcGray, Size(blurSlider->value(), blurSlider->value()));
         threshold(srcGray, srcGray, threshSlider->value(), 255, thrType);
-        absdiff(srcGray, secondFrame, outputFrame);
         if (maskLoaded)
             outputFrame -= maskFrame;
-        cvtColor(srcGray, canny, CV_RGB2GRAY);
+        if (srcGray.channels() > 1)
+            cvtColor(srcGray, canny, CV_RGB2GRAY);
+        else
+            canny = outputFrame.clone();
         Canny(canny, canny, canny1Slider->value(), canny2Slider->value());
         dilate(canny, canny, element);
         erode(canny, canny, element);
@@ -248,8 +250,9 @@ void TrackFollowerDemo::showFrame() {
             const Point *elementPoints[1] = {&tmp[0]};
             int numberOfPoints = (int)tmp.size();
             fillPoly(drawingFrame, elementPoints, &numberOfPoints, 1, Scalar(0,0,255));
-        }
-        outputFrame = drawingFrame;
+        }      
+        cvtColor(firstFrame, outputFrame, CV_GRAY2RGB);
+        outputFrame += drawingFrame;
         ui->outputFrameLabel->setGeometry(640,480, 640, 480);
         QPixmap o = QPixmap::fromImage(CameraThread::mat2qImage(outputFrame));
         ui->outputFrameLabel->setPixmap(o.scaled(640, 480, Qt::KeepAspectRatio));

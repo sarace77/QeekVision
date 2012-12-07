@@ -69,16 +69,21 @@ void CirclesMainWindow::processFrame() {
 
 void CirclesMainWindow::showFrame() {
     Mat frame = process3ad->dequeue();
+//    Point center(frame.cols/2, frame.rows/2);
+//    Point v1(frame.cols/2, frame.rows/2 - 25);
+//    Point v2(frame.cols/2, frame.rows/2 + 25);
+//    Point h1(frame.cols/2 - 25, frame.rows/2);
+//    Point h2(frame.cols/2 + 25, frame.rows/2);
     Point center(frame.cols/2, frame.rows/2);
-    Point v1(frame.cols/2, frame.rows/2 - 25);
-    Point v2(frame.cols/2, frame.rows/2 + 25);
-    Point h1(frame.cols/2 - 25, frame.rows/2);
-    Point h2(frame.cols/2 + 25, frame.rows/2);
-    circle(frame, center, 3, Scalar(255,0,255), 1);
-    circle(frame, center, 6, Scalar(255,0,255), 1);
-    circle(frame, center, 9, Scalar(255,0,255), 1);
-    line (frame, v1, v2, Scalar(255,0,255), 1);
-    line (frame, h1, h2, Scalar(255,0,255), 1);
+    Point h1(489, 450);
+    Point h2(589, 450);
+    Point v1(539, 400);
+    Point v2(539, 500);
+    circle(frame, center, 3, Scalar(0,0,255), 1);
+    circle(frame, center, 6, Scalar(0,0,255), 1);
+    circle(frame, center, 9, Scalar(0,0,255), 1);
+    line (frame, v1, v2, Scalar(0,255,0), 2);
+    line (frame, h1, h2, Scalar(0,255,0), 2);
     ui->statusBar->showMessage(tr("FPS: %1").arg(process3ad->getFrameRate()));
     ui->label->setGeometry(0, 0, frame.cols, frame.rows);
     ui->label->setPixmap(QPixmap::fromImage(CameraThread::mat2qImage(frame)));

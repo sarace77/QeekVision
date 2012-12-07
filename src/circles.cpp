@@ -83,7 +83,7 @@ Circles::Circles(QObject *parent) : ProcessThread(parent) {
 
     _eccentricityThreshold->setDecimals(3);
     _eccentricityThreshold->setMaximum(0.5);
-    _eccentricityThreshold->setValue(0.07);
+    _eccentricityThreshold->setValue(0.01);
     _eccentricityThreshold->setSingleStep(0.001);
 
     _erodeDilateSteps->setMinimum(1);
@@ -94,7 +94,7 @@ Circles::Circles(QObject *parent) : ProcessThread(parent) {
 
     _errorSlider->setMinimum(1);
     _errorSlider->setMaximum(3840000);
-    _errorSlider->setValue(1000);
+    _errorSlider->setValue(3000);
 
     _kernelSize->setTickInterval(2);
     _kernelSize->setTickPosition(QSlider::TicksBelow);
@@ -109,9 +109,9 @@ Circles::Circles(QObject *parent) : ProcessThread(parent) {
     _maxRadiusSlider->setMaximum(500);
     _maxRadiusSlider->setValue(250);
 
-    _minRadiusSlider->setMinimum(100);
+    _minRadiusSlider->setMinimum(1);
     _minRadiusSlider->setMaximum(500);
-    _minRadiusSlider->setValue(150);
+    _minRadiusSlider->setValue(70);
 
     _param1Slider->setMinimum(0);
     _param1Slider->setMaximum(255);
@@ -133,7 +133,7 @@ Circles::Circles(QObject *parent) : ProcessThread(parent) {
 
     _thresholdSlider->setMinimum(1);
     _thresholdSlider->setMaximum(254);
-    _thresholdSlider->setValue(20);
+    _thresholdSlider->setValue(95);
     _thresholdSlider->setTickPosition(QSlider::TicksBelow);
     _thresholdValue->setText(QString("%1").arg(_thresholdSlider->value()));
 

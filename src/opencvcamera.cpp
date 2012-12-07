@@ -26,10 +26,8 @@ void OpenCVCamera::configure() {
 }
 
 int OpenCVCamera::exec() {
-    if (_enableVerboseMode->isChecked()) {
-        qDebug() << "[CAMERA_THREAD::OPEN_CV_CAMERA] - exec() - Started!";
-        qDebug() << "[CAMERA_THREAD::OPEN_CV_CAMERA] - exec() - Frame size: " << getWidth() << "x" << getHeight();
-    }
+    qDebug() << "[CAMERA_THREAD::OPEN_CV_CAMERA] - run() - Frame size: " << getWidth() << "x" << getHeight();
+    qDebug() << "[CAMERA_THREAD::OPEN_CV_CAMERA] - exec() - Started!";
     while(1) {
         _cvMatbuffer.clear();
         myTimer.start();
@@ -48,7 +46,7 @@ int OpenCVCamera::exec() {
                 qWarning() << "[CAMERA_THREAD::OPEN_CV_CAMERA] - exec() - Unable to lock Mutex: ";
             }
         } else {
-            qWarning() << "[CAMERA_THREAD::OPEN_CV_CAMERA] - exec() - No cmaera device opened!";
+            qWarning() << "[CAMERA_THREAD::OPEN_CV_CAMERA] - exec() - No camera device opened!";
         }
         int elapsedTime = myTimer.elapsed() > 0? myTimer.elapsed() : 0;
         msleep( elapsedTime < 20 ? 20 - elapsedTime : 1 );

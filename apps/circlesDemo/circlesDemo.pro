@@ -18,6 +18,7 @@ HEADERS  += circlesmainwindow.h
 FORMS    += circlesmainwindow.ui
 
 INCLUDEPATH += /usr/local/include/
+INCLUDEPATH += /opt/AVT_GigE_SDK/inc-pc/
 INCLUDEPATH += $$PWD/../../src
 DEPENDPATH += $$PWD/../../src
 

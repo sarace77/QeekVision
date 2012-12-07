@@ -1,9 +1,14 @@
 TEMPLATE = lib
 
 LIBS += -L/usr/local/lib/
+LIBS += -L/opt/AVT_GigE_SDK/bin-pc/x64/
 LIBS += -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_video
 LIBS += -lv4lconvert
+LIBS += -lPvAPI
+
 INCLUDEPATH += /usr/local/include/
+INCLUDEPATH += /opt/AVT_GigE_SDK/inc-pc/
+
 DEPENDPATH += /usr/local/include/
 
 TARGET = QeekVision
@@ -21,7 +26,9 @@ HEADERS += \
     mpgwriter.h \
     circles.h \
     opencvcamera.h \
-    ellipseobject.h
+    ellipseobject.h \
+    gigecamera.h \
+    gigesettings.h
 
 SOURCES += \
     camerathread.cpp \
@@ -34,11 +41,14 @@ SOURCES += \
     mpgwriter.cpp \
     circles.cpp \
     opencvcamera.cpp \
-    ellipseobject.cpp
+    ellipseobject.cpp \
+    gigecamera.cpp \
+    gigesettings.cpp
 
 RESOURCES += \
     resources.qrc
 
 FORMS += \
-    v4lsettings.ui
+    v4lsettings.ui \
+    gigesettings.ui
 

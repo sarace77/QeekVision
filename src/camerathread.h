@@ -45,6 +45,7 @@ protected:
 
 protected slots:
     virtual void configure() = 0;
+    void viewCameraNetInfo() { }
 
 public:
     CameraThread(QObject *parent = 0);

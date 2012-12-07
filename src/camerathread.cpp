@@ -62,6 +62,8 @@ Mat CameraThread::getFrame() {
 }
 
 QImage CameraThread::mat2qImage(Mat src) {
+    if (src.channels() == 1)
+        return QImage(src.data, src.cols, src.rows, QImage::Format_Indexed8);
     return QImage(src.data, src.cols, src.rows, QImage::Format_RGB888);
 }
 
