@@ -15,6 +15,10 @@ class GigeQeekDemoWindow : public QMainWindow
     
 private:
     GigECamera * capture3ad;
+
+private slots:
+    void showFrame();
+
 public:
     explicit GigeQeekDemoWindow(QWidget *parent = 0);
     ~GigeQeekDemoWindow();

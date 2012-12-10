@@ -30,12 +30,21 @@ int GigESettings::getGain() {
     return ui->gainDial->value();
 }
 
+QString GigESettings::getPixelFormat() {
+    return ui->pixelFormatCombo->currentText();
+}
+
 quint8 GigESettings::getSelectedCamera() {
     return ui->cameraSelectCombo->currentIndex();
 }
 
 void GigESettings::setCameraIPData(QStringList ipData) {
-    ui->cameraNetInfo->addItems(ipData);
+    ui->addressLineEdit->setText(ipData.at(0));
+    ui->netmaskLineEdit->setText(ipData.at(1));
+    ui->gatewayLineEdit->setText(ipData.at(2));
+    if (ipData.count() > 3) {
+        ui->attrubutesListWidget->addItems(ipData.mid(3));
+    }
 }
 
 void GigESettings::setExposure(int value) {
@@ -44,4 +53,13 @@ void GigESettings::setExposure(int value) {
 
 void GigESettings::setGain(int value) {
     ui->gainDial->setValue(value);
+}
+
+void GigESettings::setPixelFormat(QString value) {
+    for (int i = 0; i < ui->pixelFormatCombo->count(); i++) {
+        if (value == ui->pixelFormatCombo->itemText(i)) {
+            ui->pixelFormatCombo->setCurrentIndex(i);
+            break;
+        }
+    }
 }

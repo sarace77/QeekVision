@@ -2,6 +2,7 @@
 
 #include <QDebug>
 #include <arpa/inet.h>
+#include "Defs.h"
 
 GigECamera::GigECamera()
 {
@@ -10,22 +11,26 @@ GigECamera::GigECamera()
     connect(settingsDialog, SIGNAL(cameraChanged()), this, SLOT(viewCameraNetInfo()));
     numCameras = 0;
     PvResult = ePvErrSuccess;
+    frameHeight = _STD_FRM_HGHT;
+    frameWidth = _STD_FRM_WDTH;
+    srcFrame = NULL;
+    stopInvoked = false;
 }
+
 GigECamera::~GigECamera() {
-    PvUnInitialize();
-    if(isRunning())
+    if (isRunning())
         stop();
     delete settingsDialog;
+    if (srcFrame != NULL)
+        delete srcFrame;
 }
 
 void GigECamera::configure() {
     PvInitialize();
-    msleep(1000);
+    msleep(300);
     numCameras = PvCameraList(cameraList, MAX_CAMERAS, NULL);
     qDebug() << "[GIGE_CAMERA] - configure() - Num of detected cameras: " << numCameras;
-
     QStringList camList;
-
     if (numCameras < 1) {
         qWarning() << "[GIGE_CAMERA] - configure() - no camera detected!";
     } else {
@@ -39,16 +44,38 @@ void GigECamera::configure() {
 }
 
 int GigECamera::exec() {
-    qDebug() << "[GIGE_CAMERA] - exec() - Started";
+    qDebug() << "[GIGE_CAMERA] - exec() - Started!";
+    while(1) {
+        PvResult = PvCaptureWaitForFrameDone(Camera.Handle, &(Camera.Frame), 1000);
+        if (PvResult != ePvErrSuccess && !stopInvoked) {
+            qWarning() << "[GIGE_CAMERA] - exec() - Timeout for " << QString(cameraList[settingsDialog->getSelectedCamera()].DisplayName);
+            printPvError();
+            stop();
+        }
+        PvResult = PvCaptureQueueFrame(Camera.Handle, &(Camera.Frame), NULL);
+        if (PvResult != ePvErrSuccess && !stopInvoked) {
+            qWarning() << "[GIGE_CAMERA] - exec() - Unable to get frame from" << QString(cameraList[settingsDialog->getSelectedCamera()].DisplayName);
+            printPvError();
+            stop();
+        }
+        if (settingsDialog->getPixelFormat() == "Mono8") {
+            _cvMatbuffer.enqueue(srcFrame->clone());
+        } else {
+            Mat rgbFrame =srcFrame->clone();
+            cvtColor(rgbFrame, rgbFrame, CV_GRAY2RGB);
+            _cvMatbuffer.enqueue(rgbFrame.clone());
+        }
+        emit availableFrame();
+    }
     return 0;
 }
 
 int GigECamera::getHeight() {
-    return 0;
+    return frameHeight;
 }
 
 int GigECamera::getWidth() {
-    return 0;
+    return frameWidth;
 }
 
 bool GigECamera::isConfigurated() {
@@ -133,10 +160,10 @@ void GigECamera::printPvError() {
 }
 
 void GigECamera::run() {
+    qDebug() << "[GIGE_CAMERA] - run() - Starting...";
     PvInitialize();
     msleep(1000);
     numCameras = PvCameraList(cameraList, MAX_CAMERAS, NULL);
-
     if (numCameras < 1) {
         qWarning() << "[GIGE_CAMERA] - run() - no camera detected!";
     } else {
@@ -144,6 +171,53 @@ void GigECamera::run() {
         if (PvResult == ePvErrSuccess) {
             PvAttrUint32Set(Camera.Handle,"ExposureValue", settingsDialog->getExposure());
             PvAttrUint32Set(Camera.Handle, "GainValue", settingsDialog->getGain());
+            if (settingsDialog->getPixelFormat() == "Mono8")
+                PvAttrEnumSet(Camera.Handle, "PixelFormat", settingsDialog->getPixelFormat().toAscii().constData());
+            tPvUint32 frameSize;
+            char pixelFormat[256];
+            PvAttrUint32Get(Camera.Handle, "TotalBytesPerFrame", &frameSize);
+            PvAttrUint32Get(Camera.Handle, "Width", &frameWidth);
+            PvAttrUint32Get(Camera.Handle, "Height", &frameHeight);
+            PvAttrEnumGet(Camera.Handle, "PixelFormat", pixelFormat,256,NULL);
+            Camera.Frame.ImageBufferSize = frameSize;
+             if (strcmp(pixelFormat, "Mono8")==0) {
+                srcFrame = new Mat(frameHeight, frameWidth, CV_8UC1);
+             } else if (strcmp(pixelFormat, "Mono16")==0) {
+                srcFrame = new Mat(frameHeight, frameWidth, CV_16UC1);
+             } else if (strcmp(pixelFormat, "Bgr24")==0) {
+                srcFrame = new Mat(frameHeight, frameWidth, CV_8UC3);
+             }
+             Camera.Frame.ImageBuffer = srcFrame->data;
+             PvResult = PvCaptureStart(Camera.Handle);
+             if (PvResult != ePvErrSuccess) {
+                 qWarning() << "[GIGE_CAMERA] - run() - Unable to start Capture for " << QString(cameraList[settingsDialog->getSelectedCamera()].DisplayName);
+                 printPvError();
+                 return;
+             }
+             PvResult = PvCaptureQueueFrame(Camera.Handle, &(Camera.Frame), NULL);
+             if (PvResult != ePvErrSuccess) {
+                 qWarning() << "[GIGE_CAMERA] - run() - Unable to get frame from" << QString(cameraList[settingsDialog->getSelectedCamera()].DisplayName);
+                 printPvError();
+                 stop();
+             }
+             PvResult = PvAttrEnumSet(Camera.Handle, "FrameStartTriggerMode", "Freerun");
+             if (PvResult != ePvErrSuccess) {
+                 qWarning() << "[GIGE_CAMERA] - run() - Unable to set Freerun mode for " << QString(cameraList[settingsDialog->getSelectedCamera()].DisplayName);
+                 printPvError();
+                 return;
+             }
+             PvResult = PvAttrEnumSet(Camera.Handle, "AcquisitionMode", "Continuous");
+             if (PvResult != ePvErrSuccess) {
+                 qWarning() << "[GIGE_CAMERA] - run() - Unable to set Continous Capture mode for " << QString(cameraList[settingsDialog->getSelectedCamera()].DisplayName);
+                 printPvError();
+                 return;
+             }
+             PvResult = PvCommandRun(Camera.Handle, "AcquisitionStart");
+             if (PvResult != ePvErrSuccess) {
+                 qWarning() << "[GIGE_CAMERA] - run() - Unable to set run command AcquisitionStart for " << QString(cameraList[settingsDialog->getSelectedCamera()].DisplayName);
+                 printPvError();
+                 return;
+             }
             _settingsAction->setEnabled(false);
             _startAction->setEnabled(false);
             _stopAction->setEnabled(true);
@@ -152,33 +226,48 @@ void GigECamera::run() {
             qWarning() << "[GIGE_CAMERA] - run() - Error opening" << QString(cameraList[settingsDialog->getSelectedCamera()].DisplayName);
             printPvError();
         }
-
     }
 }
 
 void GigECamera::stop() {
+    stopInvoked = true;
+    qDebug() << "[GIGE_CAMERA] - stop() - Stopping...";
+    PvResult = PvCommandRun(Camera.Handle, "AcquisitionStop");
+    if (PvResult != ePvErrSuccess) {
+        qWarning() << "[GIGE_CAMERA] - stop() - Error Stopping Acquisition";
+        printPvError();
+    }
+    PvResult = PvCaptureEnd(Camera.Handle);
+    if (PvResult != ePvErrSuccess) {
+        qWarning() << "[GIGE_CAMERA] - stop() - Error Ending Capture";
+        printPvError();
+    }
+    PvResult = PvCameraClose(Camera.Handle);
+    if (PvResult != ePvErrSuccess) {
+        qWarning() << "[GIGE_CAMERA] - stop() - Error closing Camera";
+        printPvError();
+    }
+    PvUnInitialize();
+    msleep(300);
+    qDebug() << "[GIGE_CAMERA] - stop() - Stopped!";
     _settingsAction->setEnabled(true);
     _startAction->setEnabled(true);
     _stopAction->setEnabled(false);
-    PvResult = PvCameraClose(Camera.Handle);
-    msleep(1000);
-    PvUnInitialize();
-    msleep(1000);
+    stopInvoked = false;
     terminate();
 }
 
 void GigECamera::viewCameraNetInfo() {
     Camera.UID = cameraList[settingsDialog->getSelectedCamera()].UniqueId;
-    QStringList sAddress;
+    QStringList sAddress, sAttributes;
     if (!PvCameraInfo(Camera.UID,&camInfo) && !PvCameraIpSettingsGet(Camera.UID,&ipSettings)) {
         struct in_addr addr;
         addr.s_addr = ipSettings.CurrentIpAddress;
-        sAddress << QString("Camera address: \t%1").arg(inet_ntoa(addr));
+        sAddress << QString("%1").arg(inet_ntoa(addr));
         addr.s_addr = ipSettings.CurrentIpSubnet;
-        sAddress << QString("Camera subnet: \t%1").arg(inet_ntoa(addr));
+        sAddress << QString("%1").arg(inet_ntoa(addr));
         addr.s_addr = ipSettings.CurrentIpGateway;
-        sAddress << QString("Camera gateway: \t%1").arg(inet_ntoa(addr));
-        settingsDialog->setCameraIPData(sAddress);
+        sAddress << QString("%1").arg(inet_ntoa(addr));
         PvResult = PvCameraOpen(Camera.UID, ePvAccessMaster, &(Camera.Handle));
         if (PvResult == ePvErrSuccess) {
             tPvAttrListPtr  listPtr;
@@ -186,7 +275,7 @@ void GigECamera::viewCameraNetInfo() {
             if (PvAttrList(Camera.Handle, &listPtr, &listLength) == ePvErrSuccess) {
                 for (int i = 0; i < listLength; i++) {
                     const char* attributeName = listPtr[i];
-                    qDebug() << "Supported Attribute: " << QString(attributeName);
+                    sAttributes << QString(attributeName);
                 }
             }
             tPvUint32 value = 0;
@@ -194,19 +283,27 @@ void GigECamera::viewCameraNetInfo() {
             settingsDialog->setExposure((int) value);
             PvAttrUint32Get(Camera.Handle, "GainValue", &value);
             settingsDialog->setGain(value);
+            char pixelFormat[256];
+            PvAttrEnumGet(Camera.Handle, "PixelFormat", pixelFormat,256,NULL);
+            settingsDialog->setPixelFormat(QString(pixelFormat));
             PvResult = PvCameraClose(Camera.Handle);
-            msleep(1000);
+            if (PvResult != ePvErrSuccess) {
+                qWarning() << "[GIGE_CAMERA] - viewCameraNetInfo() - Error closing Camera";
+                printPvError();
+            }
+            emit configurated();
+            PvUnInitialize();
+            msleep(500);
             _settingsAction->setEnabled(true);
             _startAction->setEnabled(true);
             _stopAction->setEnabled(false);
-            emit configurated();
-            PvUnInitialize();
-            msleep(1000);
         } else {
             qWarning() << "[GIGE_CAMERA] - run() - Error opening" << QString(cameraList[settingsDialog->getSelectedCamera()].DisplayName);
             printPvError();
         }
-
+        if (sAttributes.count() > 0)
+            sAddress << "Supported Attributes:" << sAttributes;
+        settingsDialog->setCameraIPData(sAddress);
     } else {
            qWarning("[GIGE_CAMERA] - run() - could not retrieve camera IP settings.\n");
     }

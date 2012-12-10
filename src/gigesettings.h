@@ -23,10 +23,12 @@ public:
     void addCameraList(QStringList cameraList);
     int getExposure();
     int getGain();
+    QString getPixelFormat();
     quint8 getSelectedCamera();
     void setCameraIPData(QStringList ipData);
     void setExposure(int value);
     void setGain(int value);
+    void setPixelFormat(QString value);
 
 signals:
     void cameraChanged();

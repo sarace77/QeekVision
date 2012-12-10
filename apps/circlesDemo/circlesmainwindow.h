@@ -7,7 +7,7 @@
 #include <QMainWindow>
 #include <QTime>
 
-#include "opencvcamera.h"
+#include "camerathread.h"
 #include "circles.h"
 
 
@@ -20,7 +20,7 @@ class CirclesMainWindow : public QMainWindow
     Q_OBJECT
 private:
     Ui::CirclesMainWindow *ui;
-    OpenCVCamera *capture3ad;
+    CameraThread *capture3ad;
     Circles *process3ad;
     Mat src;
     QTime dialogTimer;

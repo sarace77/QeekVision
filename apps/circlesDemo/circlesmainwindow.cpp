@@ -1,7 +1,7 @@
 #include "circlesmainwindow.h"
 #include "ui_circlesmainwindow.h"
 
-#include "opencvcamera.h"
+#include "gigecamera.h"
 
 #include <opencv2/imgproc/imgproc.hpp>
 
@@ -14,7 +14,7 @@ CirclesMainWindow::CirclesMainWindow(QWidget *parent) :
     ui(new Ui::CirclesMainWindow)
 {
     ui->setupUi(this);
-    capture3ad = new OpenCVCamera();
+    capture3ad = new GigECamera();
     process3ad = new Circles();
     addToolBar(capture3ad->toolBar());
     if(process3ad->hasToolBar()) {
@@ -63,6 +63,8 @@ void CirclesMainWindow::processFrame() {
     if(process3ad->hasToolBar())
         process3ad->toolBar()->setVisible(true);
     src = capture3ad->getFrame();
+    if (src.type() == CV_8UC1)
+        cvtColor(src, src, CV_GRAY2RGB);
     process3ad->enqueue(src);
     this->resize(src.cols + process3ad->toolBar()->width(), src.rows < 640 ? 640 : src.rows);
 }

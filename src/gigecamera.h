@@ -27,16 +27,24 @@ class GigECamera : public CameraThread
 {
 
 private:
+    enum PixelFormat {
+        Mono8,
+        Mono16,
+        Bgr24
+    };
+
     typedef struct {
         unsigned long   UID;
         tPvHandle       Handle;
         tPvFrame        Frame;
+        PixelFormat     eFormat;
         } tCamera;
 
     tPvCameraInfo   cameraList[MAX_CAMERAS];
     tPvCameraInfo   camInfo;
     tPvIpSettings   ipSettings;
     tPvErr          PvResult;
+    tPvUint32       frameWidth, frameHeight;
 
     tCamera Camera;
 
@@ -45,6 +53,10 @@ private:
     GigESettings *settingsDialog;
 
     void printPvError();
+
+    Mat * srcFrame;
+
+    bool stopInvoked;
 
 private slots:
     void configure();
