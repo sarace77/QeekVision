@@ -42,6 +42,10 @@ private:
     bool circleFound_, ellipseFound_;
     Mat blurFrame_, cannyFrame_;
 
+
+    /// Input/Output
+    Point frameCenter;
+
 private slots:
     void kernelValueChanged(int value);
     void selectBlurType(bool value);
@@ -65,6 +69,7 @@ public:
     EllipseObject getEllipse();
     bool hasBlurredFrame();
     bool hasCannyFrame();
+    void setCenter(Point cPoint);
 
     /// Process3ad Overrided
     bool hasToolBar();

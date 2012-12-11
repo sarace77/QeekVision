@@ -23,11 +23,14 @@ public:
     void addCameraList(QStringList cameraList);
     int getExposure();
     int getGain();
+    int getPacketSize();
     QString getPixelFormat();
     quint8 getSelectedCamera();
+    bool isAutoPacketSize();
     void setCameraIPData(QStringList ipData);
     void setExposure(int value);
     void setGain(int value);
+    void setPacketSize(int value);
     void setPixelFormat(QString value);
 
 signals:

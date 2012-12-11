@@ -11,11 +11,14 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp\
-        circlesmainwindow.cpp
+        circlesmainwindow.cpp \
+    displaywidget.cpp
 
-HEADERS  += circlesmainwindow.h
+HEADERS  += circlesmainwindow.h \
+    displaywidget.h
 
-FORMS    += circlesmainwindow.ui
+FORMS    += circlesmainwindow.ui \
+    displaywidget.ui
 
 INCLUDEPATH += /usr/local/include/
 INCLUDEPATH += /opt/AVT_GigE_SDK/inc-pc/

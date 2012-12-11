@@ -46,6 +46,9 @@ CirclesMainWindow::CirclesMainWindow(QWidget *parent) :
     blurDialog->setLayout(blurLayout);
     cannyLayout->addWidget(cannyLabel);
     cannyDialog->setLayout(cannyLayout);
+
+    imageWidget = new DisplayWidget();
+    imageWidget->setParent(ui->centralWidget);
 }
 
 CirclesMainWindow::~CirclesMainWindow() {
@@ -71,26 +74,29 @@ void CirclesMainWindow::processFrame() {
 
 void CirclesMainWindow::showFrame() {
     Mat frame = process3ad->dequeue();
-//    Point center(frame.cols/2, frame.rows/2);
-//    Point v1(frame.cols/2, frame.rows/2 - 25);
-//    Point v2(frame.cols/2, frame.rows/2 + 25);
-//    Point h1(frame.cols/2 - 25, frame.rows/2);
-//    Point h2(frame.cols/2 + 25, frame.rows/2);
-    Point center(frame.cols/2, frame.rows/2);
-    Point h1(489, 450);
-    Point h2(589, 450);
-    Point v1(539, 400);
-    Point v2(539, 500);
-    circle(frame, center, 3, Scalar(0,0,255), 1);
-    circle(frame, center, 6, Scalar(0,0,255), 1);
-    circle(frame, center, 9, Scalar(0,0,255), 1);
-    line (frame, v1, v2, Scalar(0,255,0), 2);
+    Point center, h1, h2, v1, v2;
+    if (imageWidget->getMouseXPos() > 0 && imageWidget->getMouseYPos() > 0) {
+        center = Point(imageWidget->getMouseXPos(), imageWidget->getMouseYPos());
+        h1 = Point(imageWidget->getMouseXPos() - 20, imageWidget->getMouseYPos());
+        h2 = Point(imageWidget->getMouseXPos() + 20, imageWidget->getMouseYPos());
+        v1 = Point(imageWidget->getMouseXPos(), imageWidget->getMouseYPos() - 20);
+        v2 = Point(imageWidget->getMouseXPos(), imageWidget->getMouseYPos() + 20);
+    }  else {
+        center = Point(frame.cols/2, frame.rows/2);
+        h1 = Point(frame.cols/2 - 25, frame.rows/2);
+        h2 = Point(frame.cols/2 + 25, frame.rows/2);
+        v1 = Point(frame.cols/2, frame.rows/2 - 25);
+        v2 = Point(frame.cols/2, frame.rows/2 + 25);
+    }
+    process3ad->setCenter(center);
     line (frame, h1, h2, Scalar(0,255,0), 2);
+    line (frame, v1, v2, Scalar(0,255,0), 2);
     ui->statusBar->showMessage(tr("FPS: %1").arg(process3ad->getFrameRate()));
     ui->label->setGeometry(0, 0, frame.cols, frame.rows);
     ui->label->setPixmap(QPixmap::fromImage(CameraThread::mat2qImage(frame)));
-    ui->circleDataBox->setGeometry(ui->label->width() - 220, ui->label->height() - 180, 220, 180);
-    ui->ellipseBox->setGeometry(0,0, ui->label->width(), 80);
+    imageWidget->setGeometry(0, 0, frame.cols, frame.rows);
+    ui->circleDataBox->setGeometry(ui->label->width() - 220, ui->label->height() - 200, 220, 180);
+    ui->ellipseBox->setGeometry(0,0, ui->label->width(), 120);
     EllipseObject _ellipse = process3ad->getEllipse();
     if (process3ad->ellipseFound()) {
         ellipseLabel->setText(QString("<H3><FONT COLOR=#FF0000>New Ellipse found!</FONT></H3>") + QString("degree: %1").arg((1.0 - _ellipse.getEccentricity())*360/6.28));
@@ -103,7 +109,7 @@ void CirclesMainWindow::showFrame() {
         ui->centerY->setText(QString("%1").arg((int) _ellipse.getCenter().y));
         ui->xRadius->setText(QString("%1").arg((int) _ellipse.getHRadius()));
         ui->yRadius->setText(QString("%1").arg((int) _ellipse.getVRadius()));
-        ui->centerDistance->setText(QString("%1").arg(_ellipse.getDistanceFromPoint(Point(frame.cols/2, frame.rows/2))));
+        ui->centerDistance->setText(QString("%1").arg(_ellipse.getDistanceFromPoint(center)));
         ui->circleDataBox->setVisible(true);
         ellipseLabel->setText(QString("<H1><FONT COLOR=#00FF00>Circle found!</FONT></H1>")+ QString("degree: %1").arg((1.0 - _ellipse.getEccentricity())*360/6.28));
         dialogTimer.start();

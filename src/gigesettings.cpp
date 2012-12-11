@@ -30,12 +30,20 @@ int GigESettings::getGain() {
     return ui->gainDial->value();
 }
 
+int GigESettings::getPacketSize() {
+    return ui->packetSizeSpinBox->value();
+}
+
 QString GigESettings::getPixelFormat() {
     return ui->pixelFormatCombo->currentText();
 }
 
 quint8 GigESettings::getSelectedCamera() {
     return ui->cameraSelectCombo->currentIndex();
+}
+
+bool GigESettings::isAutoPacketSize() {
+    return ui->autoPacketSizeCheckBox->isChecked();
 }
 
 void GigESettings::setCameraIPData(QStringList ipData) {
@@ -53,6 +61,10 @@ void GigESettings::setExposure(int value) {
 
 void GigESettings::setGain(int value) {
     ui->gainDial->setValue(value);
+}
+
+void GigESettings::setPacketSize(int value) {
+    ui->packetSizeSpinBox->setValue(value);
 }
 
 void GigESettings::setPixelFormat(QString value) {

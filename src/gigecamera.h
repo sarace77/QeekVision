@@ -44,7 +44,7 @@ private:
     tPvCameraInfo   camInfo;
     tPvIpSettings   ipSettings;
     tPvErr          PvResult;
-    tPvUint32       frameWidth, frameHeight;
+    tPvUint32       frameWidth, frameHeight, frameSize;
 
     tCamera Camera;
 
@@ -53,7 +53,6 @@ private:
     GigESettings *settingsDialog;
 
     void printPvError();
-
     Mat * srcFrame;
 
     bool stopInvoked;
@@ -62,7 +61,6 @@ private slots:
     void configure();
     int exec();
     void run();
-
     void viewCameraNetInfo();
 
 public:
@@ -74,7 +72,6 @@ public:
     bool isConfigurated();
 
 public slots:
-//    Mat getFrame();
     void stop();
 
 };

@@ -175,6 +175,8 @@ Circles::Circles(QObject *parent) : ProcessThread(parent) {
     circleFound_ = false;
     ellipseFound_ = false;
 
+    frameCenter = Point(0, 0);
+
     connect(_gaussianBlur, SIGNAL(toggled(bool)), this, SLOT(selectBlurType(bool)));
     connect(_kernelSize, SIGNAL(valueChanged(int)), this, SLOT(kernelValueChanged(int)));
     connect(_thresholdSlider, SIGNAL(valueChanged(int)), this, SLOT(thresholdValueChanged(int)));
@@ -245,6 +247,10 @@ bool Circles::hasCannyFrame() {
     return _showCanny->isChecked();
 }
 
+void Circles::setCenter(Point cPoint) {
+    frameCenter = cPoint;
+}
+
 bool Circles::hasToolBar() {
     return true;
 }
@@ -270,7 +276,8 @@ int Circles::exec() {
                 srcFrame = _inBuffer.dequeue();
                 if (!srcFrame.empty()) {
                     dst = srcFrame;
-                    Point frameCenter(srcFrame.cols/2, srcFrame.rows/2);
+                    if (frameCenter.x == 0 && frameCenter.y == 0)
+                        frameCenter = Point(srcFrame.cols/2, srcFrame.rows/2);
                     cvtColor(srcFrame, srcGray, CV_BGR2GRAY);
                     int kSizeInt = _kernelSize->value();
                     kSizeInt = (kSizeInt / 2) * 2 == kSizeInt ? kSizeInt - 1: kSizeInt;
