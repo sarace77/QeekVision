@@ -5,6 +5,5 @@ SUBDIRS += qeekdemo \
     thermographyDemo \
     videoWriterDemo \
     circlesDemo \
-    TrackFollowerDemo \
-    GigeQeekDemo
+    TrackFollowerDemo
 

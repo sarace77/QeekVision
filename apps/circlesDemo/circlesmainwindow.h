@@ -10,6 +10,7 @@
 #include "camerathread.h"
 #include "circles.h"
 #include "qvdisplaywidget.h"
+#include "qvdriverselect.h"
 
 
 namespace Ui {
@@ -21,16 +22,24 @@ class CirclesMainWindow : public QMainWindow
     Q_OBJECT
 private:
     Ui::CirclesMainWindow *ui;
+
+    /// QeekVision Objects
     CameraThread *capture3ad;
+    QVDriverSelect *driverSelectDialog;
     Circles *process3ad;
+
+    /// Internal members
     Mat src;
     QTime dialogTimer;
+
+    /// GUI Objects
     QDialog *blurDialog, *cannyDialog;
     QHBoxLayout *blurLayout, *cannyLayout, *ellipseLayout;
     QLabel  *blurLabel, *cannyLabel, *ellipseLabel;
     QVDisplayWidget *imageWidget;
 
 private slots:
+    void acceptedDriverSelection();
     void processFrame();
     void showFrame();
 

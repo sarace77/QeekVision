@@ -192,24 +192,32 @@ void GigECamera::run() {
                  printPvError();
                  PvCaptureQueueClear(Camera.Handle);
                  return;
+             } else {
+                 qDebug() << "[GIGE_CAMERA] - run() - Capture Started";
              }
              PvResult = PvAttrEnumSet(Camera.Handle, "FrameStartTriggerMode", "Freerun");
              if (PvResult != ePvErrSuccess) {
                  qWarning() << "[GIGE_CAMERA] - run() - Unable to set Freerun mode for " << QString(cameraList[settingsDialog->getSelectedCamera()].DisplayName);
                  printPvError();
                  return;
+             } else {
+                 qDebug() << "[GIGE_CAMERA] - run() - FreeRun mode set";
              }
              PvResult = PvAttrEnumSet(Camera.Handle, "AcquisitionMode", "Continuous");
              if (PvResult != ePvErrSuccess) {
                  qWarning() << "[GIGE_CAMERA] - run() - Unable to set Continous Capture mode for " << QString(cameraList[settingsDialog->getSelectedCamera()].DisplayName);
                  printPvError();
                  return;
+             } else {
+                 qDebug() << "[GIGE_CAMERA] - run() - Continous mode set";
              }
              PvResult = PvCommandRun(Camera.Handle, "AcquisitionStart");
              if (PvResult != ePvErrSuccess) {
                  qWarning() << "[GIGE_CAMERA] - run() - Unable to set run command AcquisitionStart for " << QString(cameraList[settingsDialog->getSelectedCamera()].DisplayName);
                  printPvError();
                  return;
+             } else {
+                 qDebug() << "[GIGE_CAMERA] - run() - AcquisitionStart success";
              }
              PvResult = PvCaptureQueueFrame(Camera.Handle, &(Camera.Frame), NULL);
              if (PvResult != ePvErrSuccess) {
@@ -217,6 +225,8 @@ void GigECamera::run() {
                  printPvError();
                  PvCaptureQueueClear(Camera.Handle);
                  stop();
+             } else {
+                 qDebug() << "[GIGE_CAMERA] - run() - Capture Queue Started";
              }
             _settingsAction->setEnabled(false);
             _startAction->setEnabled(false);

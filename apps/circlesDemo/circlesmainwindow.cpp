@@ -2,10 +2,11 @@
 #include "ui_circlesmainwindow.h"
 
 #include "gigecamera.h"
+#include "opencvcamera.h"
+#include "v4lcamera.h"
+#include "ellipseobject.h"
 
 #include <opencv2/imgproc/imgproc.hpp>
-
-#include "ellipseobject.h"
 
 #include <QDebug>
 
@@ -14,17 +15,11 @@ CirclesMainWindow::CirclesMainWindow(QWidget *parent) :
     ui(new Ui::CirclesMainWindow)
 {
     ui->setupUi(this);
+
     capture3ad = new GigECamera();
+    driverSelectDialog = new QVDriverSelect(DRIVER_PV_API);
     process3ad = new Circles();
-    addToolBar(capture3ad->toolBar());
-    if(process3ad->hasToolBar()) {
-        addToolBar(Qt::RightToolBarArea, process3ad->toolBar());
-        process3ad->toolBar()->setVisible(false);
-    }
-    connect(capture3ad, SIGNAL(started()), process3ad, SLOT(start()));
-    connect(capture3ad, SIGNAL(availableFrame()), this, SLOT(processFrame()));
-    connect(capture3ad, SIGNAL(terminated()), process3ad, SLOT(stop()));
-    connect(process3ad, SIGNAL(availableProcessedFrame()), this, SLOT(showFrame()));
+
     ui->circleDataBox->setVisible(false);
     ui->ellipseBox->setVisible(false);
     ellipseLayout = new QHBoxLayout();
@@ -48,6 +43,14 @@ CirclesMainWindow::CirclesMainWindow(QWidget *parent) :
     cannyDialog->setLayout(cannyLayout);
 
     imageWidget = new QVDisplayWidget(ui->centralWidget);
+    addToolBar(Qt::RightToolBarArea, process3ad->toolBar());
+    process3ad->toolBar()->setVisible(false);
+
+    driverSelectDialog->move(200, 200);
+    driverSelectDialog->show();
+
+    connect(driverSelectDialog, SIGNAL(accepted()), this, SLOT(acceptedDriverSelection()));
+    connect(driverSelectDialog, SIGNAL(accepted()), this, SLOT(showMaximized()));
 }
 
 CirclesMainWindow::~CirclesMainWindow() {
@@ -57,8 +60,29 @@ CirclesMainWindow::~CirclesMainWindow() {
     delete ui;
     process3ad->deleteLater();
     capture3ad->deleteLater();
+    delete driverSelectDialog;
     delete ellipseLabel;
     delete ellipseLayout;
+}
+
+void CirclesMainWindow::acceptedDriverSelection() {
+    switch(driverSelectDialog->getDriverType()) {
+    case DRIVER_PV_API:
+        break;
+    case DRIVER_V4L:
+        delete capture3ad;
+        capture3ad = new V4LCamera();
+        break;
+    default:
+        delete capture3ad;
+        capture3ad = new OpenCVCamera();
+        break;
+    }
+    addToolBar(capture3ad->toolBar());
+    connect(capture3ad, SIGNAL(started()), process3ad, SLOT(start()));
+    connect(capture3ad, SIGNAL(availableFrame()), this, SLOT(processFrame()));
+    connect(capture3ad, SIGNAL(terminated()), process3ad, SLOT(stop()));
+    connect(process3ad, SIGNAL(availableProcessedFrame()), this, SLOT(showFrame()));
 }
 
 void CirclesMainWindow::processFrame() {

@@ -1,8 +1,7 @@
 TEMPLATE = lib
 
 LIBS += -L/usr/local/lib/
-#LIBS += -L/opt/AVT_GigE_SDK/bin-pc/x64/
-LIBS += -L/opt/AVT_GigE_SDK/lib-pc/x64/4.5/
+LIBS += -L/opt/AVT_GigE_SDK/lib-pc/x64/4.5
 LIBS += -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_video
 LIBS += -lv4lconvert
 LIBS += -lPvAPI
@@ -30,7 +29,8 @@ HEADERS += \
     ellipseobject.h \
     gigecamera.h \
     gigesettings.h \
-    qvdisplaywidget.h
+    qvdisplaywidget.h \
+    qvdriverselect.h
 
 SOURCES += \
     camerathread.cpp \
@@ -46,7 +46,8 @@ SOURCES += \
     ellipseobject.cpp \
     gigecamera.cpp \
     gigesettings.cpp \
-    qvdisplaywidget.cpp
+    qvdisplaywidget.cpp \
+    qvdriverselect.cpp
 
 RESOURCES += \
     resources.qrc
@@ -54,5 +55,6 @@ RESOURCES += \
 FORMS += \
     v4lsettings.ui \
     gigesettings.ui \
-    qvdisplaywidget.ui
+    qvdisplaywidget.ui \
+    qvdriverselect.ui
 
