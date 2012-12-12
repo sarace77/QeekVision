@@ -92,8 +92,9 @@ void CirclesMainWindow::showFrame() {
     line (frame, h1, h2, Scalar(0,255,0), 2);
     line (frame, v1, v2, Scalar(0,255,0), 2);
     imageWidget->displayImage(frame);
-    ui->circleDataBox->setGeometry(ui->label->width() - 220, ui->label->height() - 200, 220, 180);
-    ui->ellipseBox->setGeometry(0,0, ui->label->width(), 120);
+    imageWidget->lower();
+    ui->circleDataBox->setGeometry(imageWidget->width() - 220, imageWidget->height() - 200, 220, 180);
+    ui->ellipseBox->setGeometry(0,0, imageWidget->width(), 120);
     EllipseObject _ellipse = process3ad->getEllipse();
     if (process3ad->ellipseFound()) {
         ellipseLabel->setText(QString("<H3><FONT COLOR=#FF0000>New Ellipse found!</FONT></H3>") + QString("degree: %1").arg((1.0 - _ellipse.getEccentricity())*360/6.28));
