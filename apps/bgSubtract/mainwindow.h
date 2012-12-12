@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include "camerathread.h"
 #include "bgsubtractor.h"
+#include "qvdisplaywidget.h"
 
 #include <opencv2/opencv.hpp>
 
@@ -22,6 +23,7 @@ private:
     Ui::MainWindow *ui;
     CameraThread *capture3ad;
     BGSubtractor *process3ad;
+    QVDisplayWidget *imageWidget;
 
 private slots:
     void processFrame();

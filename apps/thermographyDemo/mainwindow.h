@@ -5,6 +5,7 @@
 #include <QMainWindow>
 #include "camerathread.h"
 #include "processthread.h"
+#include "qvdisplaywidget.h"
 
 
 namespace Ui {
@@ -19,7 +20,7 @@ private:
     Ui::MainWindow *ui;
     CameraThread *capture3ad;
     ProcessThread *process3ad;
-
+    QVDisplayWidget *imageWidget;
     QFileDialog *fDialog;
 
 private slots:

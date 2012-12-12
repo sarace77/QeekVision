@@ -8,9 +8,9 @@ QT       += core gui
 
 LIBS += -L/usr/local/lib/
 #LIBS += -L/opt/AVT_GigE_SDK/bin-pc/x64/
-LIBS += -L/opt/AVT_GigE_SDK/lib-pc/x64/4.5/
+#LIBS += -L/opt/AVT_GigE_SDK/lib-pc/x64/4.5/
 LIBS += -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_video
-LIBS += -lPvAPI
+#LIBS += -lPvAPI
 LIBS += -L$$OUT_PWD/../../src/ -lQeekVision
 
 INCLUDEPATH += /usr/local/include/

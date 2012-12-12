@@ -15,6 +15,11 @@ TrackFollowerDemo::TrackFollowerDemo(QWidget *parent) : QMainWindow(parent), ui(
     secondFrameAcquired = false;
     maskLoaded = false;
     capture3ad = new OpenCVCamera();
+    firstWidget = new QVDisplayWidget(ui->centralWidget);
+    secondWidget = new QVDisplayWidget(ui->centralWidget);
+    maskWidget = new QVDisplayWidget(ui->centralWidget);
+    outputWidget = new QVDisplayWidget(ui->centralWidget);
+
     maskDialog = new QFileDialog();
     select1stFrame = new QRadioButton("First Frame");
     select2ndFrame = new QRadioButton("Second Frame");
@@ -140,6 +145,10 @@ TrackFollowerDemo::~TrackFollowerDemo()
     if(capture3ad->isRunning())
         capture3ad->stop();
     capture3ad->deleteLater();
+    delete firstWidget;
+    delete secondWidget;
+    delete maskWidget;
+    delete outputWidget;
     delete select1stFrame;
     delete select2ndFrame;
     delete ui;

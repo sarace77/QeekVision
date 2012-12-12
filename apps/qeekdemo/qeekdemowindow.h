@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include "camerathread.h"
+#include "qvdisplaywidget.h"
 
 namespace Ui {
 class QeekDemoWindow;
@@ -14,6 +15,7 @@ class QeekDemoWindow : public QMainWindow
 private:
     Ui::QeekDemoWindow *ui;
     CameraThread *capture3ad;
+    QVDisplayWidget * imageWidget;
 
 private slots:
     void showFrame();

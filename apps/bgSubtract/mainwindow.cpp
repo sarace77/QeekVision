@@ -10,14 +10,11 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
     capture3ad = new V4LCamera();
+    imageWidget = new QVDisplayWidget(ui->centralWidget);
     addToolBar(capture3ad->toolBar());
     process3ad = new BGSubtractor();
-    if(process3ad->hasToolBar()) {
-        addToolBar(process3ad->toolBar());
-        this->setMinimumWidth(capture3ad->toolBar()->width() + process3ad->toolBar()->width());
-    } else {
-        this->setMinimumWidth(capture3ad->toolBar()->width());
-    }
+    addToolBar(Qt::RightToolBarArea,process3ad->toolBar());
+    process3ad->toolBar()->setVisible(false);
     connect(capture3ad, SIGNAL(started()), process3ad, SLOT(start()));
     connect(capture3ad, SIGNAL(availableFrame()), this, SLOT(processFrame()));
     connect(capture3ad, SIGNAL(terminated()), process3ad, SLOT(terminate()));
@@ -31,6 +28,7 @@ MainWindow::~MainWindow() {
     if (process3ad->isRunning())
         process3ad->terminate();
     process3ad->deleteLater();
+    delete imageWidget;
     delete ui;
 }
 
@@ -41,7 +39,8 @@ void MainWindow::processFrame() {
 
 
 void MainWindow::showFrame() {
-    this->resize(capture3ad->getWidth(), capture3ad->getHeight() + 50 + capture3ad->toolBar()->size().height());
-    ui->frameLabel->setGeometry(0, 0, capture3ad->getWidth(), capture3ad->getHeight());
-    ui->frameLabel->setPixmap(QPixmap::fromImage(CameraThread::mat2qImage(process3ad->dequeue())));
+    if (!process3ad->toolBar()->isVisible())
+        process3ad->toolBar()->setVisible(true);
+    this->resize(capture3ad->getWidth() + 100, capture3ad->getHeight() + 63);
+    imageWidget->displayImage(process3ad->dequeue());
 }

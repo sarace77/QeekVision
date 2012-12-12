@@ -13,6 +13,7 @@
 #include <QWidget>
 
 #include "opencvcamera.h"
+#include "qvdisplaywidget.h"
 
 namespace Ui {
 class TrackFollowerDemo;
@@ -24,6 +25,7 @@ class TrackFollowerDemo : public QMainWindow
     
 private:
     OpenCVCamera *capture3ad;
+    QVDisplayWidget *firstWidget, *secondWidget, *maskWidget, *outputWidget;
 
     QRadioButton *select1stFrame, *select2ndFrame;
 

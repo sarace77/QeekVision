@@ -11,6 +11,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),  ui(new Ui::MainW
     ui->setupUi(this);
     capture3ad = new V4LCamera();
     connect(capture3ad, SIGNAL(availableFrame()), this, SLOT(processFrame()));
+    imageWidget = new QVDisplayWidget(ui->centralWidget);
     process3ad = new Thermography();
     connect(process3ad, SIGNAL(availableProcessedFrame()), this, SLOT(showFrame()));
     connect(capture3ad, SIGNAL(terminated()), process3ad, SLOT(stop()));
@@ -20,12 +21,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),  ui(new Ui::MainW
     fDialog->setDirectory(QString("//"));
     fDialog->setNameFilter("All Images files (*.bmp *.jpg *.png)");
     connect(fDialog, SIGNAL(accepted()), this, SLOT(openFile()));
-    if(process3ad->hasToolBar()) {
-        addToolBar(process3ad->toolBar());
-        this->setMinimumWidth(capture3ad->toolBar()->width() + 80);
-    } else {
-        this->setMinimumWidth(capture3ad->toolBar()->width());
-    }
+    addToolBar(Qt::RightToolBarArea, process3ad->toolBar());
+    process3ad->toolBar()->setVisible(false);
 }
 
 MainWindow::~MainWindow()
@@ -35,6 +32,7 @@ MainWindow::~MainWindow()
         capture3ad->stop();
     capture3ad->deleteLater();
     process3ad->deleteLater();
+    delete imageWidget;
 }
 
 void MainWindow::on_actionOpen_triggered() {
@@ -54,11 +52,12 @@ void MainWindow::processFrame() {
 }
 
 void MainWindow::showFrame() {
+    if (!process3ad->toolBar()->isVisible())
+        process3ad->toolBar()->setVisible(true);
     Mat frame = process3ad->dequeue();
     while(frame.cols > 1600 || frame.rows > 1200) {
         pyrDown(frame, frame, Size(frame.cols/2, frame.rows/2));
     }
-    this->resize(frame.cols, frame.rows + 47 + capture3ad->toolBar()->size().height());
-    ui->label->resize(frame.cols, frame.rows);
-    ui->label->setPixmap(QPixmap::fromImage(CameraThread::mat2qImage(frame)));
+    resize(frame.cols + process3ad->toolBar()->width(), frame.rows + 60);
+    imageWidget->displayImage(frame);
 }

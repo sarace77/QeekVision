@@ -5,6 +5,7 @@
 
 #include "camerathread.h"
 #include "mpgwriter.h"
+#include "qvdisplaywidget.h"
 
 namespace Ui {
 class videoWriterDemoWindow;
@@ -17,6 +18,7 @@ class videoWriterDemoWindow : public QMainWindow
 private:
     Ui::videoWriterDemoWindow *ui;
     CameraThread *capture3ad;
+    QVDisplayWidget *imageWidget;
     MPGWriter *process3ad;
     bool once;
 

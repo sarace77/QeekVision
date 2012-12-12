@@ -10,17 +10,17 @@ videoWriterDemoWindow::videoWriterDemoWindow(QWidget *parent) :
     once = true;
     ui->setupUi(this);
     capture3ad = new V4LCamera();
-    connect(capture3ad, SIGNAL(availableFrame()), this, SLOT(showFrame()));
+    imageWidget = new QVDisplayWidget(ui->centralWidget);
     process3ad = new MPGWriter();
+
     addToolBar(capture3ad->toolBar());
-    if(process3ad->hasToolBar()) {
-        addToolBar(process3ad->toolBar());
-        this->setMinimumWidth(capture3ad->toolBar()->width() + process3ad->toolBar()->width());
-    } else {
-        this->setMinimumWidth(capture3ad->toolBar()->width());
-    }
+    addToolBar(Qt::RightToolBarArea, process3ad->toolBar());
+
+    connect(capture3ad, SIGNAL(availableFrame()), this, SLOT(showFrame()));
     connect(capture3ad, SIGNAL(terminated()), process3ad, SLOT(stop()));
     connect(capture3ad, SIGNAL(started()), process3ad, SLOT(stop()));
+
+    process3ad->toolBar()->setVisible(false);
 }
 
 videoWriterDemoWindow::~videoWriterDemoWindow()
@@ -32,14 +32,17 @@ videoWriterDemoWindow::~videoWriterDemoWindow()
     if (process3ad->isRunning())
         process3ad->terminate();
     process3ad->deleteLater();
+    delete imageWidget;
 }
 
 void videoWriterDemoWindow::showFrame() {
+    if (!process3ad->toolBar()->isVisible()) {
+        process3ad->toolBar()->setVisible(true);
+    }
     Mat src = capture3ad->getFrame();
     process3ad->enqueue(src);
-    this->resize(capture3ad->getWidth(), capture3ad->getHeight() + 47 + capture3ad->toolBar()->size().height());
-    ui->label->resize(capture3ad->getWidth(), capture3ad->getHeight());
-    ui->label->setPixmap(QPixmap::fromImage(CameraThread::mat2qImage(src)));
+    this->resize(capture3ad->getWidth() + process3ad->toolBar()->width(), capture3ad->getHeight() + 63);
+    imageWidget->displayImage(src);
 }
 
 void videoWriterDemoWindow::_debugShow() {
