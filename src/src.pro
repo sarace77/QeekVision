@@ -28,7 +28,8 @@ HEADERS += \
     opencvcamera.h \
     ellipseobject.h \
     gigecamera.h \
-    gigesettings.h
+    gigesettings.h \
+    qvdisplaywidget.h
 
 SOURCES += \
     camerathread.cpp \
@@ -43,12 +44,14 @@ SOURCES += \
     opencvcamera.cpp \
     ellipseobject.cpp \
     gigecamera.cpp \
-    gigesettings.cpp
+    gigesettings.cpp \
+    qvdisplaywidget.cpp
 
 RESOURCES += \
     resources.qrc
 
 FORMS += \
     v4lsettings.ui \
-    gigesettings.ui
+    gigesettings.ui \
+    qvdisplaywidget.ui
 

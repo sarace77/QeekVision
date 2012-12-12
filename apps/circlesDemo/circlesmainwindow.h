@@ -9,7 +9,7 @@
 
 #include "camerathread.h"
 #include "circles.h"
-#include "displaywidget.h"
+#include "qvdisplaywidget.h"
 
 
 namespace Ui {
@@ -28,7 +28,7 @@ private:
     QDialog *blurDialog, *cannyDialog;
     QHBoxLayout *blurLayout, *cannyLayout, *ellipseLayout;
     QLabel  *blurLabel, *cannyLabel, *ellipseLabel;
-    DisplayWidget *imageWidget;
+    QVDisplayWidget *imageWidget;
 
 private slots:
     void processFrame();

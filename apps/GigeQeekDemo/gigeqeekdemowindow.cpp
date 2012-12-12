@@ -9,6 +9,7 @@ GigeQeekDemoWindow::GigeQeekDemoWindow(QWidget *parent) :
 {
     ui->setupUi(this);
     capture3ad = new GigECamera();
+    displayWidget = new QVDisplayWidget(ui->centralWidget);
     addToolBar(capture3ad->toolBar());
     connect(capture3ad, SIGNAL(availableFrame()), this, SLOT(showFrame()));
 }
@@ -16,15 +17,16 @@ GigeQeekDemoWindow::GigeQeekDemoWindow(QWidget *parent) :
 GigeQeekDemoWindow::~GigeQeekDemoWindow()
 {
     if (capture3ad->isRunning())
-        capture3ad->terminate();
+        capture3ad->stop();
     capture3ad->deleteLater();
+    delete displayWidget;
     delete ui;
 }
 
 void GigeQeekDemoWindow::showFrame() {
     resize(capture3ad->getWidth() + 20, capture3ad->getHeight() + 60);
-    ui->label->setGeometry(10, 10, capture3ad->getWidth(), capture3ad->getHeight());
-    ui->label->setText("");
-    Mat src = capture3ad->getFrame();
-    ui->label->setPixmap(QPixmap::fromImage(CameraThread::mat2qImage(src)));
+    displayWidget->displayImage(capture3ad->getFrame());
+    if (displayWidget->isMouseTrackingEnabled()) {
+        ui->statusBar->showMessage(QString("%1,%2").arg(displayWidget->getMouseXPos()).arg(displayWidget->getMouseYPos()), 500);
+    }
 }

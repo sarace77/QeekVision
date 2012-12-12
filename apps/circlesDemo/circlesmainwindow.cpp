@@ -47,8 +47,7 @@ CirclesMainWindow::CirclesMainWindow(QWidget *parent) :
     cannyLayout->addWidget(cannyLabel);
     cannyDialog->setLayout(cannyLayout);
 
-    imageWidget = new DisplayWidget();
-    imageWidget->setParent(ui->centralWidget);
+    imageWidget = new QVDisplayWidget(ui->centralWidget);
 }
 
 CirclesMainWindow::~CirclesMainWindow() {
@@ -74,6 +73,7 @@ void CirclesMainWindow::processFrame() {
 
 void CirclesMainWindow::showFrame() {
     Mat frame = process3ad->dequeue();
+    QString sFrameRate = QString("Capture FrameRate: %1, ").arg(capture3ad->getFPS());
     Point center, h1, h2, v1, v2;
     if (imageWidget->getMouseXPos() > 0 && imageWidget->getMouseYPos() > 0) {
         center = Point(imageWidget->getMouseXPos(), imageWidget->getMouseYPos());
@@ -91,10 +91,7 @@ void CirclesMainWindow::showFrame() {
     process3ad->setCenter(center);
     line (frame, h1, h2, Scalar(0,255,0), 2);
     line (frame, v1, v2, Scalar(0,255,0), 2);
-    ui->statusBar->showMessage(tr("FPS: %1").arg(process3ad->getFrameRate()));
-    ui->label->setGeometry(0, 0, frame.cols, frame.rows);
-    ui->label->setPixmap(QPixmap::fromImage(CameraThread::mat2qImage(frame)));
-    imageWidget->setGeometry(0, 0, frame.cols, frame.rows);
+    imageWidget->displayImage(frame);
     ui->circleDataBox->setGeometry(ui->label->width() - 220, ui->label->height() - 200, 220, 180);
     ui->ellipseBox->setGeometry(0,0, ui->label->width(), 120);
     EllipseObject _ellipse = process3ad->getEllipse();
@@ -105,6 +102,8 @@ void CirclesMainWindow::showFrame() {
         ui->ellipseBox->setVisible(ui->ellipseBox->isVisible() && (dialogTimer.elapsed() < 250));
     }
     if (process3ad->circleFound()) {
+        QString sCircleData = QString("<H1><FONT COLOR=#00FF00>Circle found!</FONT></H1>");
+        imageWidget->displayText(_ellipse.getCenter().x, _ellipse.getCenter().y + _ellipse.getVRadius() + 5, sCircleData);
         ui->centerX->setText(QString("%1").arg((int) _ellipse.getCenter().x));
         ui->centerY->setText(QString("%1").arg((int) _ellipse.getCenter().y));
         ui->xRadius->setText(QString("%1").arg((int) _ellipse.getHRadius()));
@@ -137,4 +136,6 @@ void CirclesMainWindow::showFrame() {
         if (!blurDialog->isHidden())
             blurDialog->hide();
     }
+    sFrameRate += QString("Processing FrameRate: %1").arg(process3ad->getFrameRate());
+    ui->statusBar->showMessage(sFrameRate);
 }

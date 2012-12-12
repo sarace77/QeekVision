@@ -45,7 +45,7 @@ void GigECamera::configure() {
 int GigECamera::exec() {
     qDebug() << "[GIGE_CAMERA] - exec() - Started!";
     while(1) {
-        PvResult = PvCaptureWaitForFrameDone(Camera.Handle, &(Camera.Frame), 2000);
+        PvResult = PvCaptureWaitForFrameDone(Camera.Handle, &(Camera.Frame), 5000);
         if (PvResult != ePvErrSuccess && !stopInvoked) {
             qWarning() << "[GIGE_CAMERA] - exec() - Timeout for " << QString(cameraList[settingsDialog->getSelectedCamera()].DisplayName);
             printPvError();
@@ -64,6 +64,7 @@ int GigECamera::exec() {
             printPvError();
             stop();
         }
+        PvAttrFloat32Get(Camera.Handle, "FrameRate", &_fps);
         emit availableFrame();
     }
     return 0;

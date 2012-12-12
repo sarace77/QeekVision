@@ -4,6 +4,7 @@
 #include <QMainWindow>
 
 #include "gigecamera.h"
+#include "qvdisplaywidget.h"
 
 namespace Ui {
 class GigeQeekDemoWindow;
@@ -15,6 +16,7 @@ class GigeQeekDemoWindow : public QMainWindow
     
 private:
     GigECamera * capture3ad;
+    QVDisplayWidget * displayWidget;
 
 private slots:
     void showFrame();
