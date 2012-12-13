@@ -6,6 +6,7 @@
 #include "camerathread.h"
 #include "processthread.h"
 #include "qvdisplaywidget.h"
+#include "qvdriverselect.h"
 
 
 namespace Ui {
@@ -18,8 +19,11 @@ class MainWindow : public QMainWindow
     
 private:
     Ui::MainWindow *ui;
+
     CameraThread *capture3ad;
+
     ProcessThread *process3ad;
+
     QVDisplayWidget *imageWidget;
     QFileDialog *fDialog;
 

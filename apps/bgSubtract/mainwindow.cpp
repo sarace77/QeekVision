@@ -1,5 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "gigecamera.h"
+#include "opencvcamera.h"
 #include "v4lcamera.h"
 
 #include <QDebug>
@@ -9,16 +11,19 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    capture3ad = new V4LCamera();
+    capture3ad = new GigECamera();
+    driverSelectDialog = new QVDriverSelect(DRIVER_PV_API);
     imageWidget = new QVDisplayWidget(ui->centralWidget);
-    addToolBar(capture3ad->toolBar());
     process3ad = new BGSubtractor();
+
     addToolBar(Qt::RightToolBarArea,process3ad->toolBar());
     process3ad->toolBar()->setVisible(false);
-    connect(capture3ad, SIGNAL(started()), process3ad, SLOT(start()));
-    connect(capture3ad, SIGNAL(availableFrame()), this, SLOT(processFrame()));
-    connect(capture3ad, SIGNAL(terminated()), process3ad, SLOT(terminate()));
-    connect(process3ad, SIGNAL(availableProcessedFrame()), this, SLOT(showFrame()));
+
+    driverSelectDialog->move(200, 200);
+    driverSelectDialog->show();
+
+    connect(driverSelectDialog, SIGNAL(accepted()), this, SLOT(acceptedDriverSelection()));
+    connect(driverSelectDialog, SIGNAL(accepted()), this, SLOT(show()));
 }
 
 MainWindow::~MainWindow() {
@@ -32,9 +37,32 @@ MainWindow::~MainWindow() {
     delete ui;
 }
 
+void MainWindow::acceptedDriverSelection() {
+    switch(driverSelectDialog->getDriverType()) {
+    case DRIVER_PV_API:
+        break;
+    case DRIVER_V4L:
+        delete capture3ad;
+        capture3ad = new V4LCamera();
+        break;
+    default:
+        delete capture3ad;
+        capture3ad = new OpenCVCamera();
+        break;
+    }
+    addToolBar(capture3ad->toolBar());
+    connect(capture3ad, SIGNAL(started()), process3ad, SLOT(start()));
+    connect(capture3ad, SIGNAL(availableFrame()), this, SLOT(processFrame()));
+    connect(capture3ad, SIGNAL(terminated()), process3ad, SLOT(terminate()));
+    connect(process3ad, SIGNAL(availableProcessedFrame()), this, SLOT(showFrame()));
+
+}
 
 void MainWindow::processFrame() {
-    process3ad->enqueue(capture3ad->getFrame());
+    Mat src = capture3ad->getFrame();
+    if (src.type() == CV_8UC1)
+        cvtColor(src, src, CV_GRAY2RGB);
+    process3ad->enqueue(src);
 }
 
 

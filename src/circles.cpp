@@ -16,6 +16,7 @@ Circles::Circles(QObject *parent) : ProcessThread(parent) {
     _countoursApproxLabel = new QLabel("Contours Approximation Type");
     _eccentricityThreshold = new QDoubleSpinBox();
     _eccentricityThresholdLabel = new QLabel("Eccentricity Threshold");
+    _equalize = new QCheckBox("Equalize");
     _erodeDilateSteps = new QSlider(Qt::Horizontal);
     _erodeDilateStepsLabel = new QLabel("Num of Erode/Dilate Steps");
     _errorLabel = new QLabel("Area shape Tolerance");
@@ -67,6 +68,7 @@ Circles::Circles(QObject *parent) : ProcessThread(parent) {
     _thresholdWidget->setLayout(_thresholdLayout);
 
     _eccentricityThreshold->setToolTip("Max/Min Radius Percentage Ratio for considering ellipse an (approximated) circle");
+    _equalize->setToolTip("Equalize Histogram of the frame");
     _errorSlider->setToolTip("Maximum tolerance (in pixels) admitted for Shape Areas");
     _kernelSize->setToolTip("It defines a (value x value) blur kernel");
     _maxRadiusSlider->setToolTip("Maximum radius to be detected. If unknown, put zero as default.");
@@ -85,6 +87,8 @@ Circles::Circles(QObject *parent) : ProcessThread(parent) {
     _eccentricityThreshold->setMaximum(0.5);
     _eccentricityThreshold->setValue(0.01);
     _eccentricityThreshold->setSingleStep(0.001);
+
+    _equalize->setChecked(false);
 
     _erodeDilateSteps->setMinimum(1);
     _erodeDilateSteps->setMaximum(8);
@@ -133,12 +137,13 @@ Circles::Circles(QObject *parent) : ProcessThread(parent) {
 
     _thresholdSlider->setMinimum(1);
     _thresholdSlider->setMaximum(254);
-    _thresholdSlider->setValue(95);
+    _thresholdSlider->setValue(127);
     _thresholdSlider->setTickPosition(QSlider::TicksBelow);
     _thresholdValue->setText(QString("%1").arg(_thresholdSlider->value()));
 
     _circlesToolBar->addWidget(_showWidget);
     _circlesToolBar->addSeparator();
+    _circlesToolBar->addWidget(_equalize);
     _circlesToolBar->addWidget(_blurTypeLabel);
     _circlesToolBar->addWidget(_standardBlur);
     _circlesToolBar->addWidget(_gaussianBlur);
@@ -239,6 +244,10 @@ EllipseObject Circles::getEllipse() {
     return ellipse_;
 }
 
+Mat Circles::getHistogramPlot() {
+    return _histFrame;
+}
+
 bool Circles::hasBlurredFrame() {
     return _showBlur->isChecked();
 }
@@ -279,6 +288,9 @@ int Circles::exec() {
                     if (frameCenter.x == 0 && frameCenter.y == 0)
                         frameCenter = Point(srcFrame.cols/2, srcFrame.rows/2);
                     cvtColor(srcFrame, srcGray, CV_BGR2GRAY);
+                    if (_equalize->isChecked())
+                        equalizeHist(srcGray, srcGray);
+                    _histFrame = Histograms::plotHistogram(srcGray);
                     int kSizeInt = _kernelSize->value();
                     kSizeInt = (kSizeInt / 2) * 2 == kSizeInt ? kSizeInt - 1: kSizeInt;
                     Size kSize = Size(kSizeInt, kSizeInt);

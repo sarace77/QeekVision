@@ -14,7 +14,10 @@
 #include <QWidget>
 
 #include "ellipseobject.h"
+#include "histograms.h"
 #include "processthread.h"
+
+
 
 using namespace cv;
 using namespace std;
@@ -24,7 +27,7 @@ class Circles : public ProcessThread
     Q_OBJECT
 private:
     /// UI members
-    QCheckBox *_showBlur, *_showCanny;
+    QCheckBox *_showBlur, *_showCanny, *_equalize;
     QComboBox *_countoursApprox;
     QDoubleSpinBox *_eccentricityThreshold, *_errorSlider, *_sigmaX, *_sigmaY;
     QHBoxLayout *_imageFormatLayout, *_kernelLayout, *_showLayout, *_sigmaLayout, *_thresholdLayout;
@@ -40,8 +43,7 @@ private:
     /// Output
     EllipseObject ellipse_;
     bool circleFound_, ellipseFound_;
-    Mat blurFrame_, cannyFrame_;
-
+    Mat blurFrame_, cannyFrame_, _histFrame;
 
     /// Input/Output
     Point frameCenter;
@@ -66,6 +68,7 @@ public:
     bool ellipseFound();
     Mat getBlurredFrame();
     Mat getCannyFrame();
+    Mat getHistogramPlot();
     EllipseObject getEllipse();
     bool hasBlurredFrame();
     bool hasCannyFrame();

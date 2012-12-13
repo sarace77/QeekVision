@@ -30,7 +30,8 @@ HEADERS += \
     gigecamera.h \
     gigesettings.h \
     qvdisplaywidget.h \
-    qvdriverselect.h
+    qvdriverselect.h \
+    histograms.h
 
 SOURCES += \
     camerathread.cpp \
@@ -47,7 +48,8 @@ SOURCES += \
     gigecamera.cpp \
     gigesettings.cpp \
     qvdisplaywidget.cpp \
-    qvdriverselect.cpp
+    qvdriverselect.cpp \
+    histograms.cpp
 
 RESOURCES += \
     resources.qrc

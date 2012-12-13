@@ -30,13 +30,9 @@ private:
 
     /// Internal members
     Mat src;
-    QTime dialogTimer;
 
     /// GUI Objects
-    QDialog *blurDialog, *cannyDialog;
-    QHBoxLayout *blurLayout, *cannyLayout, *ellipseLayout;
-    QLabel  *blurLabel, *cannyLabel, *ellipseLabel;
-    QVDisplayWidget *imageWidget;
+    QVDisplayWidget *blurWidget, *cannyWidget, *histogramWidget, *imageWidget;
 
 private slots:
     void acceptedDriverSelection();

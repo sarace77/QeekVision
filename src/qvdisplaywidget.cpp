@@ -29,7 +29,7 @@ void QVDisplayWidget::displayImage(Mat src) {
 
 void QVDisplayWidget::displayText(int x, int y, QString text) {
     _textLabel->setText(text);
-    _textLabel->setGeometry(x, y, 200, 40);
+    _textLabel->setGeometry(x, y, 200, 120);
 }
 
 int QVDisplayWidget::getMouseXPos() {

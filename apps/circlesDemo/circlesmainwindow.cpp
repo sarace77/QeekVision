@@ -1,10 +1,11 @@
 #include "circlesmainwindow.h"
 #include "ui_circlesmainwindow.h"
 
+#include "ellipseobject.h"
+
 #include "gigecamera.h"
 #include "opencvcamera.h"
 #include "v4lcamera.h"
-#include "ellipseobject.h"
 
 #include <opencv2/imgproc/imgproc.hpp>
 
@@ -20,29 +21,17 @@ CirclesMainWindow::CirclesMainWindow(QWidget *parent) :
     driverSelectDialog = new QVDriverSelect(DRIVER_PV_API);
     process3ad = new Circles();
 
-    ui->circleDataBox->setVisible(false);
-    ui->ellipseBox->setVisible(false);
-    ellipseLayout = new QHBoxLayout();
-    ellipseLabel = new QLabel();
-    ellipseLabel->setTextFormat(Qt::RichText);
-    ellipseLayout->addWidget(ellipseLabel);
-    ellipseLayout->setAlignment(Qt::AlignHCenter);
-    ui->ellipseBox->setLayout(ellipseLayout);
-    this->resize(500,60);
+    resize(500,60);
 
-    blurDialog = new QDialog();
-    blurLabel = new QLabel("");
-    blurLayout = new QHBoxLayout();
-    cannyDialog = new QDialog();
-    cannyLabel = new QLabel("");
-    cannyLayout = new QHBoxLayout();
-
-    blurLayout->addWidget(blurLabel);
-    blurDialog->setLayout(blurLayout);
-    cannyLayout->addWidget(cannyLabel);
-    cannyDialog->setLayout(cannyLayout);
-
+    blurWidget = new QVDisplayWidget();
+    cannyWidget = new QVDisplayWidget();
+    histogramWidget = new QVDisplayWidget();
     imageWidget = new QVDisplayWidget(ui->centralWidget);
+
+    blurWidget->setWindowTitle("Blurred");
+    cannyWidget->setWindowTitle("Canny");
+    cannyWidget->setWindowTitle("Image Histogram");
+
     addToolBar(Qt::RightToolBarArea, process3ad->toolBar());
     process3ad->toolBar()->setVisible(false);
 
@@ -50,10 +39,11 @@ CirclesMainWindow::CirclesMainWindow(QWidget *parent) :
     driverSelectDialog->show();
 
     connect(driverSelectDialog, SIGNAL(accepted()), this, SLOT(acceptedDriverSelection()));
-    connect(driverSelectDialog, SIGNAL(accepted()), this, SLOT(showMaximized()));
+    connect(driverSelectDialog, SIGNAL(accepted()), this, SLOT(show()));
 }
 
 CirclesMainWindow::~CirclesMainWindow() {
+    imageWidget->close();
     if (capture3ad->isRunning()) {
         capture3ad->stop();
     }
@@ -61,8 +51,10 @@ CirclesMainWindow::~CirclesMainWindow() {
     process3ad->deleteLater();
     capture3ad->deleteLater();
     delete driverSelectDialog;
-    delete ellipseLabel;
-    delete ellipseLayout;
+    delete blurWidget;
+    delete cannyWidget;
+    delete histogramWidget;
+    delete imageWidget;
 }
 
 void CirclesMainWindow::acceptedDriverSelection() {
@@ -116,51 +108,44 @@ void CirclesMainWindow::showFrame() {
     line (frame, h1, h2, Scalar(0,255,0), 2);
     line (frame, v1, v2, Scalar(0,255,0), 2);
     imageWidget->displayImage(frame);
-    imageWidget->lower();
-    ui->circleDataBox->setGeometry(imageWidget->width() - 220, imageWidget->height() - 200, 220, 180);
-    ui->ellipseBox->setGeometry(0,0, imageWidget->width(), 120);
     EllipseObject _ellipse = process3ad->getEllipse();
+    float fEcc = ((float) _ellipse.getHRadius()) / ((float) _ellipse.getVRadius()) * 100;
+    QString sText =  "";
     if (process3ad->ellipseFound()) {
-        ellipseLabel->setText(QString("<H3><FONT COLOR=#FF0000>New Ellipse found!</FONT></H3>") + QString("degree: %1").arg((1.0 - _ellipse.getEccentricity())*360/6.28));
-        ui->ellipseBox->setVisible(true);
-    } else {
-        ui->ellipseBox->setVisible(ui->ellipseBox->isVisible() && (dialogTimer.elapsed() < 250));
+        sText = QString("<H2><FONT COLOR=#FF0000>Circle found!</FONT></H2>");
+        sText += QString("<FONT COLOR =#FF00FF><B>Eccentricity: </B>%1</FONT>").arg(100- fEcc);
     }
     if (process3ad->circleFound()) {
-        QString sCircleData = QString("<H1><FONT COLOR=#00FF00>Circle found!</FONT></H1>");
-        imageWidget->displayText(_ellipse.getCenter().x, _ellipse.getCenter().y + _ellipse.getVRadius() + 5, sCircleData);
-        ui->centerX->setText(QString("%1").arg((int) _ellipse.getCenter().x));
-        ui->centerY->setText(QString("%1").arg((int) _ellipse.getCenter().y));
-        ui->xRadius->setText(QString("%1").arg((int) _ellipse.getHRadius()));
-        ui->yRadius->setText(QString("%1").arg((int) _ellipse.getVRadius()));
-        ui->centerDistance->setText(QString("%1").arg(_ellipse.getDistanceFromPoint(center)));
-        ui->circleDataBox->setVisible(true);
-        ellipseLabel->setText(QString("<H1><FONT COLOR=#00FF00>Circle found!</FONT></H1>")+ QString("degree: %1").arg((1.0 - _ellipse.getEccentricity())*360/6.28));
-        dialogTimer.start();
-    } else {
-        ui->circleDataBox->setVisible(ui->circleDataBox->isVisible() && (dialogTimer.elapsed() < 500));
+        sText = QString("<H2><FONT COLOR=#00FF00>Circle found!</FONT></H2>");
+        sText += QString("<FONT COLOR =#FF00FF><B>Eccentricity: </B>%1<BR>").arg(100 - fEcc);
+        sText += QString("<B>X-Distance: </B> %1<BR>").arg(center.x - _ellipse.getCenter().x);
+        sText += QString("<B>Y-Distance: </B> %1</FONT>").arg(center.y - _ellipse.getCenter().y);
     }
+    imageWidget->displayText(_ellipse.getCenter().x, _ellipse.getCenter().y + _ellipse.getVRadius() + 5, sText);
 
     if (process3ad->hasCannyFrame()) {
         Mat cannyFrame = process3ad->getCannyFrame();
         cvtColor(cannyFrame, cannyFrame, CV_GRAY2RGB);
-        cannyLabel->setPixmap(QPixmap::fromImage(CameraThread::mat2qImage(cannyFrame)));
-        if (cannyDialog->isHidden())
-            cannyDialog->show();
+        cannyWidget->displayImage(cannyFrame);
+        if (cannyWidget->isHidden())
+            cannyWidget->show();
     } else {
-        if (!cannyDialog->isHidden())
-            cannyDialog->hide();
+        if (!cannyWidget->isHidden())
+            cannyWidget->hide();
     }
     if (process3ad->hasBlurredFrame()) {
         Mat blurFrame = process3ad->getBlurredFrame();
         cvtColor(blurFrame, blurFrame, CV_GRAY2RGB);
-        blurLabel->setPixmap(QPixmap::fromImage(CameraThread::mat2qImage(blurFrame)));
-        if (blurDialog->isHidden())
-            blurDialog->show();
+        blurWidget->displayImage(blurFrame);
+        if (blurWidget->isHidden())
+            blurWidget->show();
     } else {
-        if (!blurDialog->isHidden())
-            blurDialog->hide();
+        if (!blurWidget->isHidden())
+            blurWidget->hide();
     }
     sFrameRate += QString("Processing FrameRate: %1").arg(process3ad->getFrameRate());
     ui->statusBar->showMessage(sFrameRate);
+    if (histogramWidget->isHidden())
+        histogramWidget->setVisible(true);
+    histogramWidget->displayImage(process3ad->getHistogramPlot());
 }
