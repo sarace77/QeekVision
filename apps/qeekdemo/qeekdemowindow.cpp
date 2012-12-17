@@ -18,6 +18,7 @@ QeekDemoWindow::QeekDemoWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui
 
     driverSelectDialog->move(200, 200);
     driverSelectDialog->show();
+    ui->actionSaveFrame->setEnabled(false);
 
 }
 
@@ -29,6 +30,13 @@ QeekDemoWindow::~QeekDemoWindow() {
         capture3ad->deleteLater();
     }
     delete imageWidget;
+}
+
+void QeekDemoWindow::on_actionSaveFrame_triggered() {
+    if (imwrite("capturedFrame.png", currentFrame))
+        ui->statusbar->showMessage("Frame succesfully Saved!");
+    else
+        ui->statusbar->showMessage("Error saving frame!");
 }
 
 void QeekDemoWindow::acceptedDriverSelection() {
@@ -49,8 +57,10 @@ void QeekDemoWindow::acceptedDriverSelection() {
 }
 
 void QeekDemoWindow::showFrame() {
+    ui->actionSaveFrame->setEnabled(true);
     this->resize(capture3ad->getWidth(), capture3ad->getHeight() + HEIGHT_OFFSET + capture3ad->toolBar()->size().height());
-    imageWidget->displayImage(capture3ad->getFrame());
+    currentFrame = capture3ad->getFrame();
+    imageWidget->displayImage(currentFrame);
     if (imageWidget->hasMouseTracking()) {
         ui->statusbar->showMessage(QString("Pos: (%1,%2)").arg(imageWidget->getMouseXPos()).arg(imageWidget->getMouseYPos()));
     }

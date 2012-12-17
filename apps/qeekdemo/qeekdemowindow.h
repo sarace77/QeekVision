@@ -19,8 +19,11 @@ private:
     QVDisplayWidget *imageWidget;
     QVDriverSelect *driverSelectDialog;
 
+    Mat currentFrame;
+
 private slots:
     void acceptedDriverSelection();
+    void on_actionSaveFrame_triggered();
     void showFrame();
 
 public:

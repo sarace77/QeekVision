@@ -33,6 +33,7 @@ private:
 
     /// GUI Objects
     QVDisplayWidget *blurWidget, *cannyWidget, *histogramWidget, *imageWidget;
+    QToolBar *secondToolBar;
 
 private slots:
     void acceptedDriverSelection();

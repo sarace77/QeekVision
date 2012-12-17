@@ -35,11 +35,13 @@ CirclesMainWindow::CirclesMainWindow(QWidget *parent) :
     addToolBar(Qt::RightToolBarArea, process3ad->toolBar());
     process3ad->toolBar()->setVisible(false);
 
+    histogramWidget->setParent(ui->centralWidget);
+
     driverSelectDialog->move(200, 200);
     driverSelectDialog->show();
 
     connect(driverSelectDialog, SIGNAL(accepted()), this, SLOT(acceptedDriverSelection()));
-    connect(driverSelectDialog, SIGNAL(accepted()), this, SLOT(show()));
+    connect(driverSelectDialog, SIGNAL(accepted()), this, SLOT(showMaximized()));
 }
 
 CirclesMainWindow::~CirclesMainWindow() {
@@ -55,6 +57,7 @@ CirclesMainWindow::~CirclesMainWindow() {
     delete cannyWidget;
     delete histogramWidget;
     delete imageWidget;
+    delete secondToolBar;
 }
 
 void CirclesMainWindow::acceptedDriverSelection() {
@@ -145,7 +148,7 @@ void CirclesMainWindow::showFrame() {
     }
     sFrameRate += QString("Processing FrameRate: %1").arg(process3ad->getFrameRate());
     ui->statusBar->showMessage(sFrameRate);
-    if (histogramWidget->isHidden())
-        histogramWidget->setVisible(true);
-    histogramWidget->displayImage(process3ad->getHistogramPlot());
+    Mat histFrame = process3ad->getHistogramPlot();
+    pyrDown(histFrame, histFrame, Size(histFrame.cols/2, histFrame.rows/2));
+    histogramWidget->displayImage(histFrame);
 }

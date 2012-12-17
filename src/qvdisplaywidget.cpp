@@ -13,6 +13,8 @@ QVDisplayWidget::QVDisplayWidget(QWidget *parent) :
     _mouseTracking = false;
     _pointerPos = QPoint(-1, -1);
     _textLabel = new QLabel(this);
+
+    _firsTime = true;
 }
 
 QVDisplayWidget::~QVDisplayWidget()
@@ -21,8 +23,11 @@ QVDisplayWidget::~QVDisplayWidget()
 }
 
 void QVDisplayWidget::displayImage(Mat src) {
-    setGeometry(10, 10, src.cols, src.rows);
-    ui->imageLabel->setGeometry(0, 0, src.cols, src.rows);
+    if (_firsTime) {
+        setGeometry(10, 10, src.cols, src.rows);
+        ui->imageLabel->setGeometry(0, 0, src.cols, src.rows);
+        _firsTime = false;
+    }
     ui->imageLabel->setPixmap(QPixmap::fromImage(CameraThread::mat2qImage(src)));
     setMouseTracking(_mouseTracking);
 }
