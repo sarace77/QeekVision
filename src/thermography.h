@@ -3,11 +3,7 @@
 
 #include <opencv/cv.h>
 
-#include <QMutex>
-#include <QQueue>
-#include <QThread>
-#include <QSlider>
-#include <QSpinBox>
+#include <QtGui>
 
 #include "processthread.h"
 
@@ -17,22 +13,21 @@ class Thermography : public ProcessThread
 {
     Q_OBJECT
 
-private:
-    QToolBar *_thermographyToolBar;
-    QSlider *_blueSlider;
-    QSpinBox *_blueSpin;
-
-protected slots:
-    int exec();
-    void run();
-    void stop();
-
 public:
     Thermography(QObject *parent = 0);
 
     bool hasToolBar();
     QToolBar *toolBar();
 
+private:
+    QToolBar *_thermographyToolBar;
+    QSlider *_blueSlider;
+    QSpinBox *_blueSpin;
+
+private slots:
+    int exec();
+    void run();
+    void stop();
 };
 
 #endif // THERMOGRAPHY_H

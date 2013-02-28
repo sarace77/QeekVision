@@ -3,9 +3,6 @@
 
 #include "ellipseobject.h"
 
-#ifdef _ENABLE_GIG_E_CAMERA_SUPPORT
-#include "gigecamera.h"
-#endif //_ENABLE_GIG_E_CAMERA_SUPPORT
 #include "opencvcamera.h"
 #include "v4lcamera.h"
 
@@ -19,13 +16,8 @@ CirclesMainWindow::CirclesMainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
-#ifdef _ENABLE_GIG_E_CAMERA_SUPPORT
-    capture3ad = new GigECamera();
-    driverSelectDialog = new QVDriverSelect(DRIVER_PV_API);
-#else
     capture3ad = new V4LCamera();
     driverSelectDialog = new QVDriverSelect(DRIVER_V4L);
-#endif //_ENABLE_GIG_E_CAMERA_SUPPORT
     process3ad = new Circles();
 
     resize(500,60);
@@ -69,15 +61,7 @@ CirclesMainWindow::~CirclesMainWindow() {
 
 void CirclesMainWindow::acceptedDriverSelection() {
     switch(driverSelectDialog->getDriverType()) {
-#ifdef _ENABLE_GIG_E_CAMERA_SUPPORT
-    case DRIVER_PV_API:
-        break;
-#endif //_ENABLE_GIG_E_CAMERA_SUPPORT
     case DRIVER_V4L:
-#ifdef _ENABLE_GIG_E_CAMERA_SUPPORT
-        delete capture3ad;
-        capture3ad = new V4LCamera();
-#endif //_ENABLE_GIG_E_CAMERA_SUPPORT
         break;
     default:
         delete capture3ad;

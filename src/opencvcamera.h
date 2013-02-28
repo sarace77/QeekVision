@@ -6,14 +6,23 @@
 
 #include "camerathread.h"
 
-#include <QCheckBox>
-#include <QTimer>
+#include <QtGui>
 
 using namespace cv;
 
 class OpenCVCamera : public CameraThread
 {
     Q_OBJECT
+public:
+    OpenCVCamera();
+    ~OpenCVCamera();
+
+    int getHeight();
+    int getWidth();
+    bool isConfigurated();
+
+public slots:
+    void stop();
 
 private:
     /// Capture Device Name and File descriptor;
@@ -28,24 +37,10 @@ private:
     /// Frame Size
     int _width_, _height_;
 
-private:
-    int exec();
-    void run();
-
 private slots:
     void configure();
-
-public:
-    OpenCVCamera();
-    ~OpenCVCamera();
-
-    int getHeight();
-    int getWidth();
-    bool isConfigurated();
-
-public slots:
-    void stop();
-
+    int exec();
+    void run();
 };
 
 #endif // OPENCVCAMERA_H

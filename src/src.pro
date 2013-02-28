@@ -1,6 +1,5 @@
 TEMPLATE = lib
 
-LIBS += -L/opt/AVT_GigE_SDK/lib-pc/x64/4.5
 LIBS += -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_video
 LIBS += -lv4lconvert
 
@@ -49,15 +48,10 @@ FORMS += \
     qvdisplaywidget.ui \
     qvdriverselect.ui
 
-exists(/opt/AVT_GigE_SDK) {
-    DEFINES += _ENABLE_GIG_E_CAMERA_SUPPORT
-    INCLUDEPATH += /opt/AVT_GigE_SDK/inc-pc/
-    LIBS += -lPvAPI
-    HEADERS +=  gigecamera.h \
-                gigesettings.h
-    SOURCES +=  gigecamera.cpp \
-                gigesettings.cpp
-} else {
-    warning("No AVT_GigE SDK Found!")
-    warning("Please symlink AVT GigE SDK main folder to /opt/AVT_GigE_SDK in order to enable its support!")
+CONFIG += debug_and_release
+
+CONFIG(debug, debug|release) {
+    DEFINES += _DEBUG_CAPTURE_THREADS \
+                _DEBUG_PROCESS_THREADS
 }
+

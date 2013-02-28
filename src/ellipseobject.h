@@ -7,10 +7,6 @@ using namespace cv;
 
 class EllipseObject
 {
-
-private:
-    Point _center;
-    double _rX, _rY;
 public:
     EllipseObject();
 
@@ -24,6 +20,11 @@ public:
     void setCenter(Point pnt);
     void setHRadius(double radius);
     void setVRadius(double radius);
+
+
+private:
+    Point _center;
+    double _rX, _rY;
 };
 
 #endif // ELLIPSEOBJECT_H

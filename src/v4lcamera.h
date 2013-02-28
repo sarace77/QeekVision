@@ -11,6 +11,17 @@
 
 class V4LCamera : public CameraThread
 {
+public:
+    V4LCamera();
+    ~V4LCamera();
+
+    int getHeight();
+    int getWidth();
+    bool isConfigurated();
+
+public slots:
+    void stop();
+
 private:
     /// Configuration Engine
     V4LConfigurationEngine *_configEngine;
@@ -38,23 +49,10 @@ private:
     /// Used to Open Capture Device and set V4l Conversion format
     void openCaptureDevice();
 
-private:
-    int exec();
-    void run();
-
 private slots:
     void configure();
-
-public:
-    V4LCamera();
-    ~V4LCamera();
-
-    int getHeight();
-    int getWidth();
-    bool isConfigurated();
-
-public slots:
-    void stop();
+    int exec();
+    void run();
 };
 
 #endif // V4LCAMERA_H

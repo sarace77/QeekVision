@@ -2,17 +2,9 @@
 #define CAMERATHREAD_H
 
 #include <opencv/cv.h>
-#include <time.h>
 
-#include <QAction>
-#include <QComboBox>
-#include <QLabel>
-#include <QMutex>
-#include <QQueue>
-#include <QRadioButton>
-#include <QThread>
-#include <QTime>
-#include <QToolBar>
+#include <QtCore>
+#include <QtGui>
 
 #include "Defs.h"
 
@@ -23,10 +15,30 @@ typedef struct _buffer_ {
         size_t length;
 } Buffer;
 
-
 class CameraThread : public QThread
 {
     Q_OBJECT
+
+public:
+    CameraThread(QObject *parent = 0);
+    ~CameraThread();
+
+    float getFPS();
+    QToolBar *toolBar();
+
+    virtual int getHeight() = 0;
+    virtual int getWidth() = 0;
+    virtual bool isConfigurated() = 0;
+
+    static QImage mat2qImage(Mat src);
+
+public slots:
+    Mat getFrame();
+    virtual void stop() = 0;
+
+signals:
+    void availableFrame();
+    void configurated();
 
 protected:
     /// ToolBar Widgets
@@ -46,26 +58,6 @@ protected:
 protected slots:
     virtual void configure() = 0;
     void viewCameraNetInfo() { }
-
-public:
-    CameraThread(QObject *parent = 0);
-    ~CameraThread();
-
-    float getFPS();
-    static QImage mat2qImage(Mat src);
-    QToolBar *toolBar();
-
-    virtual int getHeight() = 0;
-    virtual int getWidth() = 0;
-    virtual bool isConfigurated() = 0;
-
-public slots:
-    Mat getFrame();
-    virtual void stop() = 0;
-
-signals:
-    void availableFrame();
-    void configurated();
 };
 
 #endif // CAMERATHREAD_H

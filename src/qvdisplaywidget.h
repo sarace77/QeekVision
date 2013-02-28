@@ -1,12 +1,8 @@
 #ifndef QVDISPLAYWIDGET_H
 #define QVDISPLAYWIDGET_H
 
-#include <QLabel>
-#include <QMouseEvent>
-#include <QPoint>
-#include <QWidget>
-
 #include <opencv2/core/core.hpp>
+#include <QtGui>
 
 using namespace cv;
 

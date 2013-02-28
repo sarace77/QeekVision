@@ -3,17 +3,23 @@
 
 #include <opencv2/opencv.hpp>
 
-#include <QSpinBox>
-#include <QToolBar>
+#include <QtGui>
 
 #include "processthread.h"
 
 using namespace cv;
-using namespace std;
 
 class BGSubtractor : public ProcessThread
 {
     Q_OBJECT
+
+public:
+    QToolBar *toolBar();
+
+    BGSubtractor(QObject *parent = 0);
+    ~BGSubtractor();
+
+    bool hasToolBar();
 
 private:
     Mat _srcFrame, _bgFrame, _fgFrame;
@@ -25,18 +31,12 @@ private:
 
     bool compareBlobs(vector<Point > firstBlob, vector<Point > secondBlob);
 
-protected slots:
+private slots:
     int exec();
     void initBG();
     void run();
     void stop();
 
-public:
-    BGSubtractor(QObject *parent = 0);
-    ~BGSubtractor();
-
-    bool hasToolBar();
-    QToolBar *toolBar();
 };
 
 #endif // BGSUBTRACTOR_H

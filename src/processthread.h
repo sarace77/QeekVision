@@ -3,26 +3,14 @@
 
 #include <opencv/cv.h>
 
-#include <QMutex>
-#include <QQueue>
-#include <QThread>
-#include <QTime>
-#include <QTimer>
-#include <QToolBar>
+#include <QtCore>
+#include <QtGui>
 
 using namespace cv;
-using namespace std;
 
 class ProcessThread : public QThread
 {
     Q_OBJECT
-
-protected:
-    QQueue<Mat > _inBuffer;
-    QQueue<Mat > _outBuffer;
-    QMutex _inBuffMtx;
-    float _fps;
-    QTime _fpsTimer;
 
 public:
     ProcessThread(QObject *parent = 0);
@@ -38,6 +26,13 @@ public slots:
 
 signals:
     void availableProcessedFrame();
+
+protected:
+    QQueue<Mat > _inBuffer;
+    QQueue<Mat > _outBuffer;
+    QMutex _inBuffMtx;
+    float _fps;
+    QTime _fpsTimer;
 };
 
 #endif // PROCESSTHREAD_H

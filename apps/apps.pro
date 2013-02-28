@@ -4,6 +4,5 @@ SUBDIRS += qeekdemo \
     bgSubtract \
     thermographyDemo \
     videoWriterDemo \
-    circlesDemo \
-    TrackFollowerDemo
+    circlesDemo
 

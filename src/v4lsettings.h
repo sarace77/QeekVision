@@ -1,11 +1,11 @@
 #ifndef V4LSETTINGS_H
 #define V4LSETTINGS_H
 
-#include <QMainWindow>
-
 #include <libv4l2.h>
 #include <libv4lconvert.h>
 #include <linux/videodev2.h>
+
+#include <QtGui>
 
 #include "Defs.h"
 
@@ -20,6 +20,24 @@ class V4LSettings;
 class V4LSettings : public QMainWindow
 {
     Q_OBJECT
+
+public:
+    explicit V4LSettings(QWidget *parent = 0);
+    ~V4LSettings();
+
+    struct v4l2_format getV4L2Config();
+    QString getV4L2DeviceName();
+
+    static QString decode4CC(__u32 code);
+    static __u32 encode4CC(QString code);
+    static QString decodeKernelVersion(__u32 code);
+    static QStringList getCapabilitiesStringList(struct v4l2_capability cap);
+    static QStringList getFormatStringList(struct v4l2_format fmt);
+    static int qioctl(int fh, int request, void *arg, QString module);
+
+signals:
+    void accepted();
+    void rejected();
 
 private:
     Ui::V4LSettings *ui;
@@ -39,31 +57,11 @@ private:
     void tryVideoMode();
 
 private slots:
-
     void on_captureMode_currentIndexChanged(int value);
     void on_device_currentIndexChanged(int value);
     void on_pixelformat_currentIndexChanged(int value);
-
     void signalAccepted();
     void signalRejected();
-
-public:
-    explicit V4LSettings(QWidget *parent = 0);
-    ~V4LSettings();
-
-    struct v4l2_format getV4L2Config();
-    QString getV4L2DeviceName();
-
-    static QString decode4CC(__u32 code);
-    static __u32 encode4CC(QString code);
-    static QString decodeKernelVersion(__u32 code);
-    static QStringList getCapabilitiesStringList(struct v4l2_capability cap);
-    static QStringList getFormatStringList(struct v4l2_format fmt);
-    static int qioctl(int fh, int request, void *arg, QString module);
-
-signals:
-    void accepted();
-    void rejected();
 };
 
 #endif // V4LSETTINGS_H

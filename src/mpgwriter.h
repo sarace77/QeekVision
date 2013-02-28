@@ -3,20 +3,29 @@
 
 #include <opencv/highgui.h>
 
-#include <QAction>
-#include <QTime>
-#include <QToolBar>
-
+#include <QtCore>
+#include <QtGui>
 
 #include "processthread.h"
-
-
 
 using namespace cv;
 
 class MPGWriter : public ProcessThread
 {
       Q_OBJECT
+public:
+    MPGWriter(QString sFileName = QString());
+
+    bool hasToolBar();
+    QToolBar *toolBar();
+
+public slots:
+    void enqueue(Mat frm);
+    void stop();
+
+signals:
+    void receivedFrame();
+
 private:
     QString _videoFileName;
     Size _frameSize;
@@ -33,23 +42,8 @@ private:
 
 private slots:
     void adjustFrameRate();
-
-protected slots:
     int exec();
     void run();
-
-public:
-    MPGWriter(QString sFileName = QString());
-
-    bool hasToolBar();
-    QToolBar *toolBar();
-
-public slots:
-    void enqueue(Mat frm);
-    void stop();
-
-signals:
-    void receivedFrame();
 };
 
 #endif // MPGWRITER_H

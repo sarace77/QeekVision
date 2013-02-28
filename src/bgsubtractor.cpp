@@ -1,5 +1,8 @@
 #include "bgsubtractor.h"
+
+#ifdef _DEBUG_PROCESS_THREADS
 #include <QDebug>
+#endif //_DEBUG_PROCESS_THREADS
 
 BGSubtractor::BGSubtractor(QObject *parent) : ProcessThread(parent) {
     _bg = NULL;
@@ -43,7 +46,9 @@ bool BGSubtractor::compareBlobs(vector<Point> firstBlob, vector<Point> secondBlo
 }
 
 int BGSubtractor::exec() {
+#ifdef _DEBUG_PROCESS_THREADS
     qDebug() << "[BG_SUBTRACTOR] - exec() - Started!";
+#endif //_DEBUG_PROCESS_THREADS
     _bgSubtractorToolBar->setEnabled(true);
     while(1) {
         if (_inBuffer.isEmpty()) {
@@ -88,8 +93,10 @@ int BGSubtractor::exec() {
                 _outBuffer.enqueue(_srcFrame);
                 emit availableProcessedFrame();
                 _inBuffMtx.unlock();
+#ifdef _DEBUG_PROCESS_THREADS
             } else {
                 qWarning() << "[BG_SUBTRACTOR] - exec() - Unable to lock Mutex";
+#endif //_DEBUG_PROCESS_THREADS
             }
         }
     }
@@ -106,19 +113,25 @@ void BGSubtractor::initBG() {
             delete _bg;
         _bg = new BackgroundSubtractorMOG2(_historySpinBox->value(), _thresholdSpinBox->value(), true);
         _inBuffMtx.unlock();
+#ifdef _DEBUG_PROCESS_THREADS
     } else {
         qWarning() << "[BG_SUBTRACTOR] - initBG() - Unable to lock Mutex";
+#endif //_DEBUG_PROCESS_THREADS
     }
 }
 
 void BGSubtractor::run() {
+#ifdef _DEBUG_PROCESS_THREADS
     qDebug() << "[BG_SUBTRACTOR] - run() - Starting";
+#endif //_DEBUG_PROCESS_THREADS
     exec();
 }
 
 void BGSubtractor::stop() {
     terminate();
+#ifdef _DEBUG_PROCESS_THREADS
     qDebug() << "[BG_SUBTRACTOR] - stop() - Terminated";
+#endif //_DEBUG_PROCESS_THREADS
 }
 
 QToolBar *BGSubtractor::toolBar() {

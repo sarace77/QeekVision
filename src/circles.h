@@ -1,23 +1,11 @@
 #ifndef CIRCLES_H
 #define CIRCLES_H
 
-#include <opencv2/imgproc/imgproc.hpp>
-#include <QCheckBox>
-#include <QComboBox>
-#include <QDoubleSpinBox>
-#include <QHBoxLayout>
-#include <QLabel>
-#include <QLineEdit>
-#include <QRadioButton>
-#include <QSlider>
-#include <QSpinBox>
-#include <QWidget>
+#include <QtGui>
 
 #include "ellipseobject.h"
 #include "histograms.h"
 #include "processthread.h"
-
-
 
 using namespace cv;
 using namespace std;
@@ -25,6 +13,27 @@ using namespace std;
 class Circles : public ProcessThread
 {
     Q_OBJECT
+public:
+    Circles(QObject *parent = 0);
+    ~Circles();
+
+    bool circleFound();
+    bool ellipseFound();
+    Mat getBlurredFrame();
+    Mat getCannyFrame();
+    Mat getHistogramPlot();
+    EllipseObject getEllipse();
+    bool hasBlurredFrame();
+    bool hasCannyFrame();
+    void setCenter(Point cPoint);
+
+    /// Process3ad Overrided
+    bool hasToolBar();
+    QToolBar *toolBar();
+
+public slots:
+    void stop();
+
 private:
     /// UI members
     QCheckBox *_showBlur, *_showCanny, *_equalize;
@@ -49,34 +58,11 @@ private:
     Point frameCenter;
 
 private slots:
+    int exec();
     void kernelValueChanged(int value);
+    void run();
     void selectBlurType(bool value);
     void thresholdValueChanged(int value);
-
-private slots:
-    int exec();
-    void run();
-
-public slots:
-    void stop();
-
-public:
-    Circles(QObject *parent = 0);
-    ~Circles();
-
-    bool circleFound();
-    bool ellipseFound();
-    Mat getBlurredFrame();
-    Mat getCannyFrame();
-    Mat getHistogramPlot();
-    EllipseObject getEllipse();
-    bool hasBlurredFrame();
-    bool hasCannyFrame();
-    void setCenter(Point cPoint);
-
-    /// Process3ad Overrided
-    bool hasToolBar();
-    QToolBar *toolBar();
 };
 
 #endif // CIRCLES_H
