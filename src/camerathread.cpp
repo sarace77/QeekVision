@@ -2,8 +2,6 @@
 
 #include <QDebug>
 
-#include <opencv/highgui.h>
-
 CameraThread::CameraThread(QObject *parent) : QThread(parent) {
     /// Cleaning FPS counter
     _fps = 0;
