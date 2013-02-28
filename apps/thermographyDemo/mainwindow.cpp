@@ -1,5 +1,9 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#ifdef _ENABLE_GIG_E_CAMERA_SUPPORT
+#include "gigecamera.h"
+#endif //_ENABLE_GIG_E_CAMERA_SUPPORT
+#include "opencvcamera.h"
 #include "v4lcamera.h"
 #include "thermography.h"
 
@@ -9,19 +13,30 @@
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),  ui(new Ui::MainWindow) {
     ui->setupUi(this);
+#ifdef _ENABLE_GIG_E_CAMERA_SUPPORT
+    capture3ad = new GigECamera();
+    driverSelectDialog = new QVDriverSelect(DRIVER_PV_API);
+#else
     capture3ad = new V4LCamera();
-    connect(capture3ad, SIGNAL(availableFrame()), this, SLOT(processFrame()));
+    driverSelectDialog = new QVDriverSelect(DRIVER_V4L);
+#endif //_ENABLE_GIG_E_CAMERA_SUPPORT
+
     imageWidget = new QVDisplayWidget(ui->centralWidget);
     process3ad = new Thermography();
     connect(process3ad, SIGNAL(availableProcessedFrame()), this, SLOT(showFrame()));
     connect(capture3ad, SIGNAL(terminated()), process3ad, SLOT(stop()));
-    addToolBar(capture3ad->toolBar());
+
     process3ad->start();
     fDialog = new QFileDialog();
     fDialog->setDirectory(QString("//"));
     fDialog->setNameFilter("All Images files (*.bmp *.jpg *.png)");
     connect(fDialog, SIGNAL(accepted()), this, SLOT(openFile()));
-    addToolBar(Qt::RightToolBarArea, process3ad->toolBar());
+
+    connect(driverSelectDialog, SIGNAL(accepted()), this, SLOT(acceptedDriverSelection()));
+    connect(driverSelectDialog, SIGNAL(accepted()), this, SLOT(show()));
+
+    driverSelectDialog->move(200, 200);
+    driverSelectDialog->show();
     process3ad->toolBar()->setVisible(false);
 }
 
@@ -34,6 +49,29 @@ MainWindow::~MainWindow()
     process3ad->deleteLater();
     delete imageWidget;
 }
+
+void MainWindow::acceptedDriverSelection() {
+    switch(driverSelectDialog->getDriverType()) {
+#ifdef _ENABLE_GIG_E_CAMERA_SUPPORT
+    case DRIVER_PV_API:
+        break;
+#endif //_ENABLE_GIG_E_CAMERA_SUPPORT
+    case DRIVER_V4L:
+#ifdef _ENABLE_GIG_E_CAMERA_SUPPORT
+        delete capture3ad;
+        capture3ad = new V4LCamera();
+#endif //_ENABLE_GIG_E_CAMERA_SUPPORT
+        break;
+    default:
+        delete capture3ad;
+        capture3ad = new OpenCVCamera();
+        break;
+    }
+    connect(capture3ad, SIGNAL(availableFrame()), this, SLOT(processFrame()));
+    addToolBar(capture3ad->toolBar());
+    addToolBar(Qt::RightToolBarArea, process3ad->toolBar());
+}
+
 
 void MainWindow::on_actionOpen_triggered() {
     fDialog->show();

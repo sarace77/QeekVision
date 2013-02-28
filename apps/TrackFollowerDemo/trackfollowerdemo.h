@@ -1,19 +1,12 @@
 #ifndef TRACKFOLLOWERDEMO_H
 #define TRACKFOLLOWERDEMO_H
 
-#include <QComboBox>
-#include <QFileDialog>
-#include <QHBoxLayout>
-#include <QLabel>
-#include <QMainWindow>
-#include <QRadioButton>
-#include <QSlider>
-#include <QSpinBox>
-#include <QToolBar>
-#include <QWidget>
+#include <QtCore>
+#include <QtGui>
 
-#include "opencvcamera.h"
+#include "camerathread.h"
 #include "qvdisplaywidget.h"
+#include "qvdriverselect.h"
 
 namespace Ui {
 class TrackFollowerDemo;
@@ -24,8 +17,9 @@ class TrackFollowerDemo : public QMainWindow
     Q_OBJECT
     
 private:
-    OpenCVCamera *capture3ad;
+    CameraThread *capture3ad;
     QVDisplayWidget *firstWidget, *secondWidget, *maskWidget, *outputWidget;
+    QVDriverSelect *driverSelectDialog;
 
     QRadioButton *select1stFrame, *select2ndFrame;
 
@@ -45,6 +39,7 @@ private:
     QWidget *blurWidget, *canny1Widget, *canny2Widget, *threshWidget;
 
 private slots:
+    void acceptedDriverSelection();
     void loadInputMask();
     void on_actionLoadMask_triggered();
     void on_actionSaveFrame_triggered();

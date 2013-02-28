@@ -1,8 +1,7 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <QFileDialog>
-#include <QMainWindow>
+#include<QtGui>
 #include "camerathread.h"
 #include "processthread.h"
 #include "qvdisplaywidget.h"
@@ -25,9 +24,11 @@ private:
     ProcessThread *process3ad;
 
     QVDisplayWidget *imageWidget;
+    QVDriverSelect *driverSelectDialog;
     QFileDialog *fDialog;
 
 private slots:
+    void acceptedDriverSelection();
     void on_actionOpen_triggered();
     void openFile();
 public:

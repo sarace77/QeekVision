@@ -74,7 +74,7 @@ void MPGWriter::enqueue(Mat frm) {
         _inBuffer.enqueue(frm);
         _inBuffMtx.unlock();
     } else {
-        qWarning() << "[PROCESS_THREAD] - enqueue() - Unable to lock Mutex";
+        qWarning() << "[MPGWriter] - enqueue() - Unable to lock Mutex";
         return;
     }
 }
@@ -84,6 +84,7 @@ int MPGWriter::exec() {
     _outStream = new VideoWriter();
     if(!_outStream->open(_videoFileName.toStdString(), CV_FOURCC('P','I','M','1'), _FPS, _frameSize, true))
         qFatal("[MPG_WRITER] - exec() - Error opening stream (1)");
+    qDebug("[MPG_WRITER] - exec() - Starting");
     while(1) {
         if (_inBuffer.isEmpty()) {
             msleep(100);
@@ -120,7 +121,7 @@ bool MPGWriter::hasToolBar() {
 }
 
 void MPGWriter::run() {
-    qDebug() << "[BG_SUBTRACTOR] - run() - Starting";
+    qDebug() << "[MPGWriter] - run() - Starting";
     QDateTime myDateTime;
     _startRecordAction->setEnabled(false);
     _stopRecordAction->setEnabled(true);

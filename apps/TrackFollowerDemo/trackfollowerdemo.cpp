@@ -7,6 +7,12 @@
 
 #include <opencv2/highgui/highgui.hpp>
 
+#ifdef _ENABLE_GIG_E_CAMERA_SUPPORT
+#include "gigecamera.h"
+#endif //_ENABLE_GIG_E_CAMERA_SUPPORT
+#include "opencvcamera.h"
+#include "v4lcamera.h"
+
 using namespace std;
 
 TrackFollowerDemo::TrackFollowerDemo(QWidget *parent) : QMainWindow(parent), ui(new Ui::TrackFollowerDemo) {
@@ -14,7 +20,13 @@ TrackFollowerDemo::TrackFollowerDemo(QWidget *parent) : QMainWindow(parent), ui(
     firstFrameAcquired = false;
     secondFrameAcquired = false;
     maskLoaded = false;
-    capture3ad = new OpenCVCamera();
+#ifdef _ENABLE_GIG_E_CAMERA_SUPPORT
+    capture3ad = new GigECamera();
+    driverSelectDialog = new QVDriverSelect(DRIVER_PV_API);
+#else
+    capture3ad = new V4LCamera();
+    driverSelectDialog = new QVDriverSelect(DRIVER_V4L);
+#endif //_ENABLE_GIG_E_CAMERA_SUPPORT
     firstWidget = new QVDisplayWidget(ui->centralWidget);
     secondWidget = new QVDisplayWidget(ui->centralWidget);
     maskWidget = new QVDisplayWidget(ui->centralWidget);
@@ -26,10 +38,8 @@ TrackFollowerDemo::TrackFollowerDemo(QWidget *parent) : QMainWindow(parent), ui(
     maskDialog->setWindowTitle("Load Mask");
     select1stFrame->setChecked(true);
     select2ndFrame->setEnabled(firstFrameAcquired);
-    ui->mainToolBar->addWidget(select1stFrame);
-    ui->mainToolBar->addWidget(select2ndFrame);
-    addToolBar(Qt::TopToolBarArea, capture3ad->toolBar());
-    connect(capture3ad, SIGNAL(availableFrame()), this, SLOT(showFrame()));
+    //addToolBar(Qt::TopToolBarArea, capture3ad->toolBar());
+    //connect(capture3ad, SIGNAL(availableFrame()), this, SLOT(showFrame()));
     connect(maskDialog, SIGNAL(accepted()), this, SLOT(loadInputMask()));
     ui->actionSaveFrame->setEnabled(false);
 
@@ -58,8 +68,6 @@ TrackFollowerDemo::TrackFollowerDemo(QWidget *parent) : QMainWindow(parent), ui(
     threshType = new QComboBox();
     threshTypeLabel = new QLabel("Threshold Type");
     threshWidget = new QWidget();
-
-    addToolBar(Qt::RightToolBarArea, optionToolBar);
 
     blurLayout->addWidget(blurSlider);
     blurLayout->addWidget(blurSpinBox);
@@ -138,6 +146,11 @@ TrackFollowerDemo::TrackFollowerDemo(QWidget *parent) : QMainWindow(parent), ui(
     connect (canny2Slider, SIGNAL(valueChanged(int)), canny2SpinBox, SLOT(setValue(int)));
     connect (canny2SpinBox, SIGNAL(valueChanged(int)), canny2Slider, SLOT(setValue(int)));
     optionToolBar->setVisible(false);
+
+    driverSelectDialog->move(200, 200);
+    driverSelectDialog->show();
+    connect(driverSelectDialog, SIGNAL(accepted()), this, SLOT(acceptedDriverSelection()));
+    connect(driverSelectDialog, SIGNAL(accepted()), this, SLOT(show()));
 }
 
 TrackFollowerDemo::~TrackFollowerDemo()
@@ -153,6 +166,31 @@ TrackFollowerDemo::~TrackFollowerDemo()
     delete select2ndFrame;
     delete ui;
 }
+
+void TrackFollowerDemo::acceptedDriverSelection() {
+    switch(driverSelectDialog->getDriverType()) {
+#ifdef _ENABLE_GIG_E_CAMERA_SUPPORT
+    case DRIVER_PV_API:
+        break;
+#endif //_ENABLE_GIG_E_CAMERA_SUPPORT
+    case DRIVER_V4L:
+#ifdef _ENABLE_GIG_E_CAMERA_SUPPORT
+        delete capture3ad;
+        capture3ad = new V4LCamera();
+#endif //_ENABLE_GIG_E_CAMERA_SUPPORT
+        break;
+    default:
+        delete capture3ad;
+        capture3ad = new OpenCVCamera();
+        break;
+    }
+    ui->mainToolBar->addWidget(select1stFrame);
+    ui->mainToolBar->addWidget(select2ndFrame);
+    connect(capture3ad, SIGNAL(availableFrame()), this, SLOT(showFrame()));
+    addToolBar(capture3ad->toolBar());
+    addToolBar(Qt::RightToolBarArea, optionToolBar);
+}
+
 
 void TrackFollowerDemo::loadInputMask() {
     if (maskDialog->selectedFiles().at(0).isEmpty()) {
@@ -187,6 +225,8 @@ void TrackFollowerDemo::showFrame() {
 
     element = getStructuringElement(MORPH_DILATE, Size(blurSlider->value(), blurSlider->value()), Point(blurSlider->value()/2, blurSlider->value()/2));
     src = capture3ad->getFrame();
+    if (src.channels() > 1)
+        cvtColor(src, src, CV_BGR2GRAY);
     drawingFrame = Mat::zeros( src.size(), CV_8UC3 );
     if (!secondFrameAcquired) {
         setGeometry(80, 80, 640, maskLoaded ? 1023 : 543);

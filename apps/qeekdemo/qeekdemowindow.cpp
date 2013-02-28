@@ -1,5 +1,7 @@
 #include "qeekdemowindow.h"
+#ifdef _ENABLE_GIG_E_CAMERA_SUPPORT
 #include "gigecamera.h"
+#endif //_ENABLE_GIG_E_CAMERA_SUPPORT
 #include "opencvcamera.h"
 #include "v4lcamera.h"
 #include "ui_qeekdemowindow.h"
@@ -9,8 +11,13 @@
 QeekDemoWindow::QeekDemoWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::QeekDemoWindow) {
     ui->setupUi(this);
 
+#ifdef _ENABLE_GIG_E_CAMERA_SUPPORT
     capture3ad = new GigECamera();
     driverSelectDialog = new QVDriverSelect(DRIVER_PV_API);
+#else
+    capture3ad = new V4LCamera();
+    driverSelectDialog = new QVDriverSelect(DRIVER_V4L);
+#endif //_ENABLE_GIG_E_CAMERA_SUPPORT
     imageWidget = new QVDisplayWidget(ui->centralwidget);
 
     connect(driverSelectDialog, SIGNAL(accepted()), this, SLOT(acceptedDriverSelection()));
@@ -32,20 +39,17 @@ QeekDemoWindow::~QeekDemoWindow() {
     delete imageWidget;
 }
 
-void QeekDemoWindow::on_actionSaveFrame_triggered() {
-    if (imwrite("capturedFrame.png", currentFrame))
-        ui->statusbar->showMessage("Frame succesfully Saved!");
-    else
-        ui->statusbar->showMessage("Error saving frame!");
-}
-
 void QeekDemoWindow::acceptedDriverSelection() {
     switch(driverSelectDialog->getDriverType()) {
+#ifdef _ENABLE_GIG_E_CAMERA_SUPPORT
     case DRIVER_PV_API:
         break;
+#endif //_ENABLE_GIG_E_CAMERA_SUPPORT
     case DRIVER_V4L:
+#ifdef _ENABLE_GIG_E_CAMERA_SUPPORT
         delete capture3ad;
         capture3ad = new V4LCamera();
+#endif //_ENABLE_GIG_E_CAMERA_SUPPORT
         break;
     default:
         delete capture3ad;
@@ -54,6 +58,13 @@ void QeekDemoWindow::acceptedDriverSelection() {
     }
     connect(capture3ad, SIGNAL(availableFrame()), this, SLOT(showFrame()));
     addToolBar(capture3ad->toolBar());
+}
+
+void QeekDemoWindow::on_actionSaveFrame_triggered() {
+    if (imwrite("capturedFrame.png", currentFrame))
+        ui->statusbar->showMessage("Frame succesfully Saved!");
+    else
+        ui->statusbar->showMessage("Error saving frame!");
 }
 
 void QeekDemoWindow::showFrame() {

@@ -26,3 +26,8 @@ SOURCES += main.cpp\
 HEADERS  += circlesmainwindow.h
 
 FORMS    += circlesmainwindow.ui
+
+
+exists(/opt/AVT_GigE_SDK) {
+    DEFINES += _ENABLE_GIG_E_CAMERA_SUPPORT
+}

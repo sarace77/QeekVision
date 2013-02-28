@@ -27,3 +27,7 @@ SOURCES += main.cpp\
 HEADERS  += mainwindow.h
 
 FORMS    += mainwindow.ui
+
+exists(/opt/AVT_GigE_SDK) {
+    DEFINES += _ENABLE_GIG_E_CAMERA_SUPPORT
+}

@@ -1,15 +1,8 @@
 TEMPLATE = lib
 
-LIBS += -L/usr/local/lib/
 LIBS += -L/opt/AVT_GigE_SDK/lib-pc/x64/4.5
 LIBS += -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_video
 LIBS += -lv4lconvert
-LIBS += -lPvAPI
-
-INCLUDEPATH += /usr/local/include/
-INCLUDEPATH += /opt/AVT_GigE_SDK/inc-pc/
-
-DEPENDPATH += /usr/local/include/
 
 TARGET = QeekVision
 VERSION = 0.1.0
@@ -27,8 +20,6 @@ HEADERS += \
     circles.h \
     opencvcamera.h \
     ellipseobject.h \
-    gigecamera.h \
-    gigesettings.h \
     qvdisplaywidget.h \
     qvdriverselect.h \
     histograms.h
@@ -45,8 +36,6 @@ SOURCES += \
     circles.cpp \
     opencvcamera.cpp \
     ellipseobject.cpp \
-    gigecamera.cpp \
-    gigesettings.cpp \
     qvdisplaywidget.cpp \
     qvdriverselect.cpp \
     histograms.cpp
@@ -60,3 +49,15 @@ FORMS += \
     qvdisplaywidget.ui \
     qvdriverselect.ui
 
+exists(/opt/AVT_GigE_SDK) {
+    DEFINES += _ENABLE_GIG_E_CAMERA_SUPPORT
+    INCLUDEPATH += /opt/AVT_GigE_SDK/inc-pc/
+    LIBS += -lPvAPI
+    HEADERS +=  gigecamera.h \
+                gigesettings.h
+    SOURCES +=  gigecamera.cpp \
+                gigesettings.cpp
+} else {
+    warning("No AVT_GigE SDK Found!")
+    warning("Please symlink AVT GigE SDK main folder to /opt/AVT_GigE_SDK in order to enable its support!")
+}
