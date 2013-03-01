@@ -69,11 +69,17 @@ void QVDisplayWidget::mousePressEvent(QMouseEvent *event) {
 }
 
 void QVDisplayWidget::mouseReleaseEvent(QMouseEvent *event) {
-
+     switch(event->button()) {
+     default:
+         break;
+     }
 }
 
 void QVDisplayWidget::mouseDoubleClickEvent(QMouseEvent *event) {
-
+    switch(event->button()) {
+    default:
+        break;
+    }
 }
 
 void QVDisplayWidget::mouseMoveEvent(QMouseEvent *event) {
