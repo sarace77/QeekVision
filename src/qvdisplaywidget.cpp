@@ -9,20 +9,17 @@ QVDisplayWidget::QVDisplayWidget(QWidget *parent) : QGraphicsView(parent) {
     _textLabel = new QLabel(this);
     setScene(_scene);
     _pixmap = NULL;
-    _firsTime = true;
 }
 
 QVDisplayWidget::~QVDisplayWidget() {
 }
 
 void QVDisplayWidget::displayImage(Mat src) {
-    if (_firsTime) {
-        setGeometry(10, 10, src.cols, src.rows);
-        _firsTime = false;
-    }
-    _scene->removeItem(_pixmap);
-    if (_pixmap != NULL)
+    setGeometry(0, 0, src.cols + 10, src.rows + 10);
+    if (_pixmap != NULL) {
+        _scene->removeItem(_pixmap);
         delete _pixmap;
+    }
     _pixmap = new QGraphicsPixmapItem(QPixmap::fromImage(CameraThread::mat2qImage(src)));
     _scene->addItem(_pixmap);
     setMouseTracking(_mouseTracking);

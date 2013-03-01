@@ -19,6 +19,7 @@ CirclesMainWindow::CirclesMainWindow(QWidget *parent) :
     capture3ad = new V4LCamera();
     driverSelectDialog = new QVDriverSelect(DRIVER_V4L);
     process3ad = new Circles();
+    secondToolBar = new QToolBar("Histograms", this);
 
     resize(500,60);
 
@@ -29,12 +30,11 @@ CirclesMainWindow::CirclesMainWindow(QWidget *parent) :
 
     blurWidget->setWindowTitle("Blurred");
     cannyWidget->setWindowTitle("Canny");
-    cannyWidget->setWindowTitle("Image Histogram");
 
     addToolBar(Qt::RightToolBarArea, process3ad->toolBar());
+    addToolBar(Qt::RightToolBarArea, secondToolBar);
     process3ad->toolBar()->setVisible(false);
-
-    histogramWidget->setParent(ui->centralWidget);
+    histogramWidget->setParent(secondToolBar);
 
     driverSelectDialog->move(200, 200);
     driverSelectDialog->show();

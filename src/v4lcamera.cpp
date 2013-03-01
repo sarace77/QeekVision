@@ -28,6 +28,14 @@ V4LCamera::V4LCamera() {
     /// V4L Buffer Type init
     _type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
+    _frameSize = new QComboBox();
+    _frameSize->setMinimumWidth(100);
+    _frameSize->setEnabled(false);
+    _frameSizeLabel = new QLabel("Frame Size: ");
+    _threadToolBar->addSeparator();
+    _threadToolBar->addWidget(_frameSizeLabel);
+    _threadToolBar->addWidget(_frameSize);
+
     connect(_settingsAction, SIGNAL(triggered()), _configEngine, SLOT(configRequest()));
 }
 
@@ -45,12 +53,23 @@ void V4LCamera::configure() {
     }
     else {
         _startAction->setEnabled(true);
+        _frameSize->setEnabled(true);
+        QStringList fSizeItems = _configEngine->getSupportedFrameSizes();
+        QString selectedSize = QString("%1x%2").arg(_configEngine->getConfiguration().configuration.fmt.pix.width).arg(_configEngine->getConfiguration().configuration.fmt.pix.height);
+        _frameSize->addItems(fSizeItems);
+        _frameSize->setCurrentIndex(fSizeItems.indexOf(selectedSize));
+        connect(_frameSize, SIGNAL(currentIndexChanged(QString)), _configEngine, SLOT(frameSizeChangeRequest(QString)));
         emit configurated();
     }
 }
 
 int V4LCamera::exec() {
     char header [50];
+#ifdef _DEBUG_CAPTURE_THREADS
+    qDebug() << "[CAMERA_THREAD::V4L_CAMERA] - exec() - Device Name" << _deviceName;
+    qDebug() << "[CAMERA_THREAD::V4L_CAMERA] - exec() - frame size" << _fmt.fmt.pix.width << "x" << _fmt.fmt.pix.height;
+#endif //_DEBUG_CAPTURE_THREADS
+
     sprintf(header,"P6\n%d %d 255\n",_fmt.fmt.pix.width,_fmt.fmt.pix.height);
     unsigned char *dst_buf;
 #ifdef _DEBUG_CAPTURE_THREADS
@@ -150,6 +169,7 @@ void V4LCamera::openCaptureDevice() {
 
 void V4LCamera::run() {
     /// Enabling/Disabling Toolbar Buttons
+    _frameSize->setEnabled(false);
     _startAction->setEnabled(false);
     _stopAction->setEnabled(true);
     _settingsAction->setEnabled(false);
@@ -159,7 +179,6 @@ void V4LCamera::run() {
 
     /// Opening Capture Device
     openCaptureDevice();
-
 
     /// Memory Mapping Init
     /// V4L Buffer Request Struct init
@@ -212,8 +231,8 @@ void V4LCamera::stop() {
            munmap(_buffers[i].start, _buffers[i].length);
     close(_fd);
     terminate();
+    _frameSize->setEnabled(true);
     _startAction->setEnabled(true);
     _stopAction->setEnabled(false);
     _settingsAction->setEnabled(true);
 }
-

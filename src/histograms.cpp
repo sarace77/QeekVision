@@ -26,13 +26,11 @@ Mat Histograms::plotHistogram(Mat src) {
     }
     double maxVal=0;
     minMaxLoc(hist, 0, &maxVal, 0, 0);
-    Mat histImg = Mat::zeros(300, 600, CV_8UC3);
-    line(histImg, Point(10,10), Point(10,290), Scalar(255,255,255), 2);
-    line(histImg, Point(10,290), Point(590,290), Scalar(255,255,255), 2);
+    Mat histImg = Mat::zeros(256, 512, CV_8UC3);
     for (int i = 0; i < numBins; i++) {
         float binVal = hist.at<float>(i);
         int intensity = round(binVal*255/maxVal);
-        rectangle(histImg, Point(10+ 2 * i, 290), Point(10 + 2 * (i + 1) - 1, 290 - intensity), Scalar(255,0,0), CV_FILLED);
+        rectangle(histImg, Point(2 * i, 255), Point(2 * (i + 1) - 1, 255 - intensity), Scalar(255,0,0), CV_FILLED);
     }
 
     return histImg;

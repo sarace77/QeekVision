@@ -87,6 +87,7 @@ void V4LSettings::on_device_currentIndexChanged(int value) {
 void V4LSettings::on_pixelformat_currentIndexChanged(int value) {
     if (ui->pixelformat->count() > 0) {
         ui->frameSize->clear();
+        supportedFrameRates.clear();
         /* Open Device */
         int fd = open(_devicesList.at(value));
         struct v4l2_frmsizeenum frmsize;
@@ -109,6 +110,7 @@ void V4LSettings::on_pixelformat_currentIndexChanged(int value) {
                 ui->frameSize->addItem(QString("%1x%2").arg(frmsize.discrete.width).arg(frmsize.discrete.height));
             }
             frmsize.index++;
+            supportedFrameRates << QString("%1x%2").arg(frmsize.discrete.width).arg(frmsize.discrete.height);
         }
         /* Close Device */
         ::close(fd);
@@ -135,35 +137,49 @@ void V4LSettings::signalAccepted() {
             if (_colorSpace.count() && (ui->colorSpace->currentIndex() > -1) )
                 _format.fmt.pix.colorspace= _colorSpace.at(ui->colorSpace->currentIndex());
             fmt = _format;
-            if (qioctl(fd, VIDIOC_S_FMT, &fmt, "V4LSettings::signalAccepted()") != 0)
+            if (qioctl(fd, VIDIOC_S_FMT, &fmt, "V4LSettings::signalAccepted()") != 0) {
+#ifdef _DEBUG_CONFIGURATION_OBJECTS
                 qWarning("[V4L_SETTINGS] - signalAccepted() - Unable to set selected colorspace");
+#endif //_DEBUG_CONFIGURATION_OBJECTS
+            }
             if (_field.count() && (ui->videoMode->currentIndex() > -1) )
                 _format.fmt.pix.field = _field.at(ui->videoMode->currentIndex());
             fmt = _format;
-            if (qioctl(fd, VIDIOC_S_FMT, &fmt, "V4LSettings::signalAccepted()") != 0)
+            if (qioctl(fd, VIDIOC_S_FMT, &fmt, "V4LSettings::signalAccepted()") != 0) {
+#ifdef _DEBUG_CONFIGURATION_OBJECTS
                 qWarning("[V4L_SETTINGS] - signalAccepted() - Unable to set selected Video Mode");
+#endif //_DEBUG_CONFIGURATION_OBJECTS
+            }
             if (ui->frameSize->count()) {
                 QStringList res = ui->frameSize->currentText().split(QChar('x'));
                 _format.fmt.pix.height = res.at(1).toUInt();
                 _format.fmt.pix.width = res.at(0).toUInt();
             }
             fmt = _format;
-            if (qioctl(fd, VIDIOC_S_FMT, &fmt, "V4LSettings::signalAccepted()") != 0)
+            if (qioctl(fd, VIDIOC_S_FMT, &fmt, "V4LSettings::signalAccepted()") != 0){
+#ifdef _DEBUG_CONFIGURATION_OBJECTS
                 qWarning("[V4L_SETTINGS] - signalAccepted() - Unable to set selected framesize");
+#endif //_DEBUG_CONFIGURATION_OBJECTS
+            }
             if(qioctl(fd, VIDIOC_G_FMT, &_format, "V4LSettings::signalAccepted()") != 0) {
+#ifdef _DEBUG_CONFIGURATION_OBJECTS
                 qWarning("[V4L_SETTINGS] - signalAccepted() - Error setting given config");
+#endif //_DEBUG_CONFIGURATION_OBJECTS
             } else {
-                //qDebug() << "[V4L_SETTINGS] - signalAccepted() - Config: " << getFormatStringList(_format);
                 emit accepted();
             }
         } else {
+#ifdef _DEBUG_CONFIGURATION_OBJECTS
             qWarning("[V4L_SETTINGS] - signalAccepted() - Unable to get configuration for the selected device");
+#endif //_DEBUG_CONFIGURATION_OBJECTS
             emit rejected();
         }
         /* Close Device */
         ::close(fd);
     } else {
+#ifdef _DEBUG_CONFIGURATION_OBJECTS
         qWarning("[V4L_SETTINGS] - signalAccepted() - No valid capture mode found for the selected device");
+#endif //_DEBUG_CONFIGURATION_OBJECTS
         emit rejected();
     }
 }

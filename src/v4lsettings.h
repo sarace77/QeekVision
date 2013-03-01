@@ -25,6 +25,8 @@ public:
     explicit V4LSettings(QWidget *parent = 0);
     ~V4LSettings();
 
+    QStringList supportedFrameRates;
+
     struct v4l2_format getV4L2Config();
     QString getV4L2DeviceName();
 

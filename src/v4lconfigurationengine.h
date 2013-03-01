@@ -19,10 +19,13 @@ public:
     V4LConfigurationEngine(QObject *parent = 0);
     ~V4LConfigurationEngine();
 
+    QStringList getSupportedFrameSizes();
+
     static struct v4l2_format encodeConfigurationStringList(QStringList sConfig);
 
 public slots:
     void configRequest(QStringList sConfig = QStringList());
+    void frameSizeChangeRequest(QString sReq);
     CaptureDevice getConfiguration();
 
 signals:

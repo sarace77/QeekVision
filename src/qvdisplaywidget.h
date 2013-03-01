@@ -22,8 +22,6 @@ private:
     void mouseDoubleClickEvent(QMouseEvent *event);
     void mouseMoveEvent(QMouseEvent *event);
 
-    bool _firsTime;
-
 public:
     explicit QVDisplayWidget(QWidget *parent = 0);
     ~QVDisplayWidget();
