@@ -1,9 +1,5 @@
 #include "bgsubtractor.h"
 
-#ifdef _DEBUG_PROCESS_THREADS
-#include <QDebug>
-#endif //_DEBUG_PROCESS_THREADS
-
 BGSubtractor::BGSubtractor(QObject *parent) : ProcessThread(parent) {
     _bg = NULL;
     _rng = new RNG(12345);

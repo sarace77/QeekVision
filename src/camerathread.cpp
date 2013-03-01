@@ -1,9 +1,5 @@
 #include "camerathread.h"
 
-#include <QDebug>
-
-#include <opencv/highgui.h>
-
 CameraThread::CameraThread(QObject *parent) : QThread(parent) {
     /// Cleaning FPS counter
     _fps = 0;
@@ -52,7 +48,9 @@ Mat CameraThread::getFrame() {
     _rgb->setEnabled(isRunning());
     _bgr->setEnabled(isRunning());
     if(_cvMatbuffer.isEmpty()) {
+#ifdef _DEBUG_CAPTURE_THREADS
         qWarning() << "[CAMERA_THREAD] << getFrame() - No Available frame in capture buffer!";
+#endif //_DEBUG_CAPTURE_THREADS
         return Mat(getHeight(), getWidth(), CV_8UC3, Scalar(0,0,0));
     }
     Mat frame = _cvMatbuffer.dequeue();

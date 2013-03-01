@@ -4,22 +4,17 @@
 #define M_PI 3.14159265358979323846
 #endif
 
-#include <opencv2/highgui/highgui.hpp>
-
-#include <QDebug>
-
 Circles::Circles(QObject *parent) : ProcessThread(parent) {
-
     _blurTypeLabel = new QLabel("Blur type:");
     _circlesToolBar = new QToolBar();
     _countoursApprox = new QComboBox();
     _countoursApproxLabel = new QLabel("Contours Approximation Type");
     _eccentricityThreshold = new QDoubleSpinBox();
-    _eccentricityThresholdLabel = new QLabel("Eccentricity Threshold");
+    _eccentricityThresholdLabel = new QLabel("Eccentricity Ratio Threshold");
     _equalize = new QCheckBox("Equalize");
     _erodeDilateSteps = new QSlider(Qt::Horizontal);
     _erodeDilateStepsLabel = new QLabel("Num of Erode/Dilate Steps");
-    _errorLabel = new QLabel("Area shape Tolerance");
+    _errorLabel = new QLabel("Maximum Average Area Shape Tolerance     ");
     _errorSlider = new QDoubleSpinBox();
     _gaussianBlur = new QRadioButton("Gaussian Blur");
     _kernelLayout = new QHBoxLayout();
@@ -27,9 +22,9 @@ Circles::Circles(QObject *parent) : ProcessThread(parent) {
     _kernelSizeLabel = new QLabel("Blur Kernel Size");
     _kernelSizeValue = new QLineEdit();
     _kernelWidget = new QWidget();
-    _maxRadiusLabel = new QLabel("MaxRadius");
+    _maxRadiusLabel = new QLabel("Maximum Radius size");
     _maxRadiusSlider = new QSpinBox();
-    _minRadiusLabel = new QLabel("MinRadius");
+    _minRadiusLabel = new QLabel("Minimum Radius size");
     _minRadiusSlider = new QSpinBox();
     _param1Label = new QLabel("UpperThr");
     _param1Slider = new QSpinBox();
@@ -141,6 +136,7 @@ Circles::Circles(QObject *parent) : ProcessThread(parent) {
     _thresholdSlider->setTickPosition(QSlider::TicksBelow);
     _thresholdValue->setText(QString("%1").arg(_thresholdSlider->value()));
 
+#ifdef _DEBUG_PROCESS_THREADS
     _circlesToolBar->addWidget(_showWidget);
     _circlesToolBar->addSeparator();
     _circlesToolBar->addWidget(_equalize);
@@ -166,6 +162,7 @@ Circles::Circles(QObject *parent) : ProcessThread(parent) {
     _circlesToolBar->addWidget(_countoursApproxLabel);
     _circlesToolBar->addWidget(_countoursApprox);
     _circlesToolBar->addSeparator();
+#endif //_DEBUG_PROCESS_THREADS
     _circlesToolBar->addWidget(_minRadiusLabel);
     _circlesToolBar->addWidget(_minRadiusSlider);
     _circlesToolBar->addWidget(_maxRadiusLabel);
@@ -269,7 +266,11 @@ QToolBar *Circles::toolBar() {
 }
 
 int Circles::exec() {
+#ifdef _DEBUG_PROCESS_THREADS
     qDebug() << "[CIRCLES] - exec() - Started!";
+#else
+    _histFrame = Mat(1,1, CV_8UC3);
+#endif //_DEBUG_PROCESS_THREADS
     Mat srcFrame, srcGray, dst;
     vector<vector<Point> > contours;
     vector<Vec4i> hierarchy;
@@ -290,7 +291,9 @@ int Circles::exec() {
                     cvtColor(srcFrame, srcGray, CV_BGR2GRAY);
                     if (_equalize->isChecked())
                         equalizeHist(srcGray, srcGray);
+#ifdef _DEBUG_PROCESS_THREADS
                     _histFrame = Histograms::plotHistogram(srcGray);
+#endif //_DEBUG_PROCESS_THREADS
                     int kSizeInt = _kernelSize->value();
                     kSizeInt = (kSizeInt / 2) * 2 == kSizeInt ? kSizeInt - 1: kSizeInt;
                     Size kSize = Size(kSizeInt, kSizeInt);
@@ -361,8 +364,10 @@ int Circles::exec() {
                 _inBuffMtx.unlock();
                 emit availableProcessedFrame();
                 _fps = 1000/_fpsTimer.elapsed();
+#ifdef _DEBUG_PROCESS_THREADS
             } else {
                 qWarning() << "[CIRCLES] - exec() - Unable to lock Mutex";
+#endif //_DEBUG_PROCESS_THREADS
             }
         }
     }
@@ -370,21 +375,30 @@ int Circles::exec() {
 }
 
 void Circles::run() {
+#ifdef _DEBUG_PROCESS_THREADS
     qDebug() << "[CIRCLES] - run() - Starting...";
+#endif //_DEBUG_PROCESS_THREADS
     exec();
 }
 
 void Circles::stop() {
+#ifdef _DEBUG_PROCESS_THREADS
     qDebug() << "[CIRCLES] - stop() - Stopping...";
-    if(!_inBuffMtx.tryLock())
+#endif //_DEBUG_PROCESS_THREADS
+    if(!_inBuffMtx.tryLock()) {
+#ifdef _DEBUG_PROCESS_THREADS
         qWarning() << "[CIRCLES] - stop() - Trying to release locked Mutex";
+#endif //_DEBUG_PROCESS_THREADS
+    }
     _inBuffMtx.unlock();    
     terminate();
     msleep(1000);
+#ifdef _DEBUG_PROCESS_THREADS
     if (!isRunning())
         qDebug() << "[CIRCLES] - stop() - Stopped!";
     else
         qWarning() << "[CIRCLES] - stop() - Process still running";
+#endif //_DEBUG_PROCESS_THREADS
 }
 
 void Circles::kernelValueChanged(int value) {

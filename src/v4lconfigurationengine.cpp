@@ -1,9 +1,5 @@
 #include "v4lconfigurationengine.h"
 
-#include <QDebug>
-#include <QFile>
-#include <QRegExp>
-
 V4LConfigurationEngine::V4LConfigurationEngine(QObject *parent) : QObject(parent) {
     _settingsDialog = new V4LSettings();
     connect(_settingsDialog, SIGNAL(accepted()), this, SLOT(settingsAccepted()));
@@ -30,25 +26,33 @@ void V4LConfigurationEngine::configRequest(QStringList sConfig) {
 
 void V4LConfigurationEngine::configurationQuery(struct v4l2_format config) {
     if (_deviceName.isEmpty()) {
+#ifdef _DEBUG_CONFIGURATION_OBJECTS
         qDebug() << "[V4L_CONFIGURATION_ENGINE] - configurationQuery() - Launching Settings Panel";
+#endif //_DEBUG_CONFIGURATION_OBJECTS
         _settingsDialog->show();
         return;
     }
     QFile  captureDevice(_deviceName);
     if (!captureDevice.exists()) {
+#ifdef _DEBUG_CONFIGURATION_OBJECTS
         qWarning() << "[V4L_CONFIGURATION_ENGINE] - configurationQuery() - Invalid device " << captureDevice.fileName();
+#endif //_DEBUG_CONFIGURATION_OBJECTS
         _deviceName.clear();
         _settingsDialog->show();
         return;
     }
     if (!captureDevice.open(QIODevice::ReadWrite)) {
+#ifdef _DEBUG_CONFIGURATION_OBJECTS
         qWarning() << "[V4L_CONFIGURATION_ENGINE] - configurationQuery() - Unable to open device " << captureDevice.fileName();
+#endif //_DEBUG_CONFIGURATION_OBJECTS
         _deviceName.clear();
         _settingsDialog->show();
         return;
     }
     if (V4LSettings::qioctl(captureDevice.handle(), VIDIOC_TRY_FMT, &config, "V4LConfigurationEngine::configurationQuery()") != 0) {
+#ifdef _DEBUG_CONFIGURATION_OBJECTS
         qWarning() << "[V4L_CONFIGURATION_ENGINE] - configurationQuery() - Invalid Configuration ";
+#endif //_DEBUG_CONFIGURATION_OBJECTS
         _settingsDialog->show();
         return;
     }
@@ -79,16 +83,22 @@ struct v4l2_format V4LConfigurationEngine::encodeConfigurationStringList(QString
     struct v4l2_format config, tmpConfig;
     CLEAR(config);
     if (sConfig.count() < 2){
+#ifdef _DEBUG_CONFIGURATION_OBJECTS
         qWarning() << "[V4L_CONFIGURATION_ENGINE] - encodeConfigurationStringList() - Too few arguments";
+#endif //_DEBUG_CONFIGURATION_OBJECTS
         return config;
     }
     QFile  captureDevice(sConfig.at(0));
     if (!captureDevice.exists()) {
+#ifdef _DEBUG_CONFIGURATION_OBJECTS
         qWarning() << "[V4L_CONFIGURATION_ENGINE] - encodeConfigurationStringList() - Invalid device " << captureDevice.fileName();
+#endif //_DEBUG_CONFIGURATION_OBJECTS
         return config;
     }
     if (!captureDevice.open(QIODevice::ReadWrite)) {
+#ifdef _DEBUG_CONFIGURATION_OBJECTS
         qWarning() << "[V4L_CONFIGURATION_ENGINE] - encodeConfigurationStringList() - Unable to open device" << captureDevice.fileName();
+#endif //_DEBUG_CONFIGURATION_OBJECTS
         return config;
     }
     config.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
@@ -104,9 +114,11 @@ struct v4l2_format V4LConfigurationEngine::encodeConfigurationStringList(QString
             tmpConfig = config;
             tmpConfig.fmt.pix.width = sConfig.at(i).toLower().split(QChar('x')).at(0).toUInt();
             tmpConfig.fmt.pix.height = sConfig.at(i).toLower().split(QChar('x')).at(0).toUInt();
-            if (V4LSettings::qioctl(captureDevice.handle(), VIDIOC_TRY_FMT, &tmpConfig, "V4LConfigurationEngine::encodeConfigurationStringList()") != 0)
+            if (V4LSettings::qioctl(captureDevice.handle(), VIDIOC_TRY_FMT, &tmpConfig, "V4LConfigurationEngine::encodeConfigurationStringList()") != 0){
+#ifdef _DEBUG_CONFIGURATION_OBJECTS
                 qWarning() << "[V4L_CONFIGURATION_ENGINE] - encodeConfigurationStringList() - Invalid or unsupported frame Size";
-            else
+#endif //_DEBUG_CONFIGURATION_OBJECTS
+             } else
                 config = tmpConfig;
         }
     }

@@ -3,12 +3,8 @@
 
 #include <opencv/highgui.h>
 
-#include <QtCore>
-#include <QtGui>
-
+#include "Defs.h"
 #include "processthread.h"
-
-using namespace cv;
 
 class MPGWriter : public ProcessThread
 {

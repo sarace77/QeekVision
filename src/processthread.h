@@ -6,6 +6,8 @@
 #include <QtCore>
 #include <QtGui>
 
+#include "Defs.h"
+
 using namespace cv;
 
 class ProcessThread : public QThread

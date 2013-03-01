@@ -1,11 +1,6 @@
 #include "v4lsettings.h"
 #include "ui_v4lsettings.h"
 
-#include <QDebug>
-#include <QDir>
-#include <QFile>
-#include <QStringListModel>
-
 #include <cstring>
 #include <errno.h>
 #include <fcntl.h>
@@ -54,7 +49,8 @@ QString V4LSettings::getV4L2DeviceName() {
 }
 
 void V4LSettings::on_captureMode_currentIndexChanged(int value) {
-    tryVideoMode();
+    if (value > -1)
+        tryVideoMode();
 }
 
 void V4LSettings::on_device_currentIndexChanged(int value) {
@@ -477,6 +473,7 @@ QStringList V4LSettings::getFormatStringList(struct v4l2_format fmt) {
 }
 
 int V4LSettings::qioctl(int fh, int request, void *arg, QString module) {
+    module = module.toUpper();
     int res;
     do {
         res = ioctl(fh, request, arg);
@@ -529,8 +526,10 @@ int V4LSettings::qioctl(int fh, int request, void *arg, QString module) {
             case VIDIOC_TRY_FMT:
                 break;
             default:
-                qWarning() << "[" + sRequest + "] called by [" + module.toUpper() + "] returns error #" + \
+#ifdef _DEBUG_CONFIGURATION_OBJECTS
+                qWarning() << "[" + sRequest + "] called by [" + module + "] returns error #" + \
                               QString("%1").arg(errno) + " (" + QString(strerror(errno)).toUpper() +")";
+#endif //_DEBUG_CONFIGURATION_OBJECTS
                 break;
             }
         }

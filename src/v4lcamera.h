@@ -5,6 +5,7 @@
 #include <libv4lconvert.h>
 #include <linux/videodev2.h>
 
+#include "Defs.h"
 #include "camerathread.h"
 #include "v4lconfigurationengine.h"
 #include "v4lsettings.h"

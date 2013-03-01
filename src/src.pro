@@ -48,10 +48,12 @@ FORMS += \
     qvdisplaywidget.ui \
     qvdriverselect.ui
 
-CONFIG += debug_and_release
+DEFINES += _DEBUG_CAPTURE_THREADS \
+            _DEBUG_CONFIGURATION_OBJECTS \
+            _DEBUG_PROCESS_THREADS
 
-CONFIG(debug, debug|release) {
-    DEFINES += _DEBUG_CAPTURE_THREADS \
-                _DEBUG_PROCESS_THREADS
-}
+#CONFIG += debug_and_release
+
+#CONFIG(debug, debug|release) {
+#}
 

@@ -1,13 +1,11 @@
 #ifndef CIRCLES_H
 #define CIRCLES_H
 
-#include <QtGui>
-
+#include "Defs.h"
 #include "ellipseobject.h"
 #include "histograms.h"
 #include "processthread.h"
 
-using namespace cv;
 using namespace std;
 
 class Circles : public ProcessThread

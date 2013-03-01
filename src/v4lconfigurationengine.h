@@ -4,6 +4,7 @@
 #include <linux/videodev2.h>
 #include <QtCore>
 
+#include "Defs.h"
 #include "v4lsettings.h"
 
 typedef struct _capture_device {

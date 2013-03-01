@@ -6,8 +6,6 @@
 #include <sys/ioctl.h>
 #include <sys/mman.h>
 
-#include <QDebug>
-
 #include <opencv/highgui.h>
 
 V4LCamera::V4LCamera() {
@@ -55,7 +53,9 @@ int V4LCamera::exec() {
     char header [50];
     sprintf(header,"P6\n%d %d 255\n",_fmt.fmt.pix.width,_fmt.fmt.pix.height);
     unsigned char *dst_buf;
+#ifdef _DEBUG_CAPTURE_THREADS
     qDebug() << "[CAMERA_THREAD::V4L_CAMERA] - exec() - Started";
+#endif //_DEBUG_CAPTURE_THREADS
     while(true){
         myTimer.start();
         do {
@@ -63,9 +63,8 @@ int V4LCamera::exec() {
             FD_SET(_fd, &_fds);
             _r = select(_fd + 1, &_fds, NULL, NULL, &_tv);
         } while ((_r == -1 && (errno = EINTR)));
-        if (_r == -1) {
+        if (_r == -1)
             qFatal("[CAMERA_THREAD::V4L_CAMERA] - exec() - select() returns error!");
-        }
         CLEAR(_buf);
         _buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
         _buf.memory = V4L2_MEMORY_MMAP;
@@ -75,8 +74,10 @@ int V4LCamera::exec() {
         if (v4lconvert_convert(_v4lconvert_data, &_src_fmt, &_fmt,
                                 (unsigned char*)_buffers[_buf.index].start, _buf.bytesused,
                                 dst_buf, _fmt.fmt.pix.sizeimage) < 0) {
-                if (errno != EAGAIN)
-                        qWarning("[CAMERA_THREAD::V4L_CAMERA] - exec() - v4l_convert() returns error");
+#ifdef _DEBUG_CAPTURE_THREADS
+            if (errno != EAGAIN)
+                qWarning("[CAMERA_THREAD::V4L_CAMERA] - exec() - v4l_convert() returns error");
+#endif //_DEBUG_CAPTURE_THREADS
         }
         unsigned char* asil=(unsigned char*)malloc(_fmt.fmt.pix.sizeimage+qstrlen(header));
         memmove(asil, dst_buf, _fmt.fmt.pix.sizeimage);
@@ -134,15 +135,17 @@ void V4LCamera::openCaptureDevice() {
     /// Check if is it open
     if (_fd < 0 )
         qFatal("[CAMERA_THREAD::V4L_CAMERA] - openCaptureDevice() - Unable to open device!");
-    /// Get Caèture Device Frame Format configuration
+    /// Get Capture Device Frame Format configuration
     V4LSettings::qioctl(_fd, VIDIOC_G_FMT, &_fmt, "V4LCamera::openCaptureDevice()");
 
     /// Set V4L frame buffer data conversion
     _v4lconvert_data = v4lconvert_create(_fd);
+#ifdef _DEBUG_CAPTURE_THREADS
     if (_v4lconvert_data == NULL)
         qWarning("[CAMERA_THREAD::V4L_CAMERA] - openCaptureDevice() - v4lconvert_create() returns error");
     if (v4lconvert_try_format(_v4lconvert_data, &_fmt, &_src_fmt) != 0)
         qWarning("[CAMERA_THREAD::V4L_CAMERA] - openCaptureDevice() - v4lconvert_try_format() returns error");
+#endif //_DEBUG_CAPTURE_THREADS
 }
 
 void V4LCamera::run() {
@@ -200,7 +203,9 @@ void V4LCamera::run() {
 }
 
 void V4LCamera::stop() {
+#ifdef _DEBUG_CAPTURE_THREADS
     qDebug() << "[CAMERA_THREAD::V4L_CAMERA] - stop() - Stopping";
+#endif //_DEBUG_CAPTURE_THREADS
     _type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     V4LSettings::qioctl(_fd, VIDIOC_STREAMOFF, &_type, "V4LCamera::stop()");
     for (unsigned int i = 0; i < _n_buffers; ++i)

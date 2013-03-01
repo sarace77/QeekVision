@@ -1,9 +1,6 @@
-#include "Defs.h"
 #include "thermography.h"
 
 #include <opencv/highgui.h>
-
-#include <QDebug>
 
 Thermography::Thermography(QObject *parent) : ProcessThread(parent) {
     _thermographyToolBar = new QToolBar();
@@ -31,8 +28,19 @@ Thermography::Thermography(QObject *parent) : ProcessThread(parent) {
     connect(_blueSlider, SIGNAL(valueChanged(int)), _blueSpin, SLOT(setValue(int)));
 }
 
+Thermography::~Thermography() {
+    if (isRunning())
+        stop();
+    disconnect(_blueSlider, SIGNAL(valueChanged(int)), _blueSpin, SLOT(setValue(int)));
+    delete _thermographyToolBar;
+    delete _blueSlider;
+    delete _blueSpin;
+}
+
 int Thermography::exec() {
+#ifdef _DEBUG_PROCESS_THREADS
     qDebug()<< "[THERMOGRAPHY] - exec() - Started";
+#endif //_DEBUG_PROCESS_THREADS
     _thermographyToolBar->setEnabled(true);
     while(1) {
         if (_inBuffer.isEmpty()) {
@@ -73,8 +81,10 @@ int Thermography::exec() {
                 _outBuffer.enqueue(rgb);
                 _inBuffMtx.unlock();
                 emit availableProcessedFrame();
+#ifdef _DEBUG_PROCESS_THREADS
             } else {
                 qWarning() << "[THERMOGRAPHY] - exec() - Unable to lock Mutex";
+#endif //_DEBUG_PROCESS_THREADS
             }
         }
     }
@@ -86,13 +96,17 @@ bool Thermography::hasToolBar() {
 }
 
 void Thermography::run() {
+#ifdef _DEBUG_PROCESS_THREADS
     qDebug() << "[THERMOGRAPHY] - run() - Starting";
+#endif //_DEBUG_PROCESS_THREADS
     exec();
 }
 
 void Thermography::stop() {
     terminate();
+#ifdef _DEBUG_PROCESS_THREADS
     qDebug() << "[THERMOGRAPHY] - stop() - Terminated";
+#endif //_DEBUG_PROCESS_THREADS
 }
 
 QToolBar *Thermography::toolBar() {

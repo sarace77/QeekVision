@@ -1,13 +1,8 @@
 #ifndef THERMOGRAPHY_H
 #define THERMOGRAPHY_H
 
-#include <opencv/cv.h>
-
-#include <QtGui>
-
+#include "Defs.h"
 #include "processthread.h"
-
-using namespace cv;
 
 class Thermography : public ProcessThread
 {
@@ -15,6 +10,7 @@ class Thermography : public ProcessThread
 
 public:
     Thermography(QObject *parent = 0);
+    ~Thermography();
 
     bool hasToolBar();
     QToolBar *toolBar();

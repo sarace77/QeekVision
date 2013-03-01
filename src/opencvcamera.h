@@ -4,9 +4,8 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 
+#include "Defs.h"
 #include "camerathread.h"
-
-#include <QtGui>
 
 using namespace cv;
 

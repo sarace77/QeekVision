@@ -3,11 +3,10 @@
 
 #include <opencv2/opencv.hpp>
 
-#include <QtGui>
-
+#include "Defs.h"
 #include "processthread.h"
 
-using namespace cv;
+using namespace std;
 
 class BGSubtractor : public ProcessThread
 {

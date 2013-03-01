@@ -1,13 +1,4 @@
-#include "Defs.h"
 #include "mpgwriter.h"
-
-#include <QDateTime>
-#include <QDebug>
-#include <QDir>
-#include <QFile>
-#include <QStringList>
-
-#include <v4lsettings.h>
 
 MPGWriter::MPGWriter(QString sFileName) {
     _outStream = NULL;
@@ -49,7 +40,6 @@ void MPGWriter::adjustFrameRate() {
             if (fps + 4.99 < 15 && fps >= 10)
                 _adjustedFPS = 10;
             if (fps + 4.99 < 10 ) {
-                qDebug() << fps;
                 _adjustedFPS = 5;
             }
         }
@@ -74,7 +64,9 @@ void MPGWriter::enqueue(Mat frm) {
         _inBuffer.enqueue(frm);
         _inBuffMtx.unlock();
     } else {
+#ifdef _DEBUG_PROCESS_THREADS
         qWarning() << "[MPGWriter] - enqueue() - Unable to lock Mutex";
+#endif
         return;
     }
 }
@@ -82,9 +74,15 @@ void MPGWriter::enqueue(Mat frm) {
 
 int MPGWriter::exec() {
     _outStream = new VideoWriter();
-    if(!_outStream->open(_videoFileName.toStdString(), CV_FOURCC('P','I','M','1'), _FPS, _frameSize, true))
+    if(!_outStream->open(_videoFileName.toStdString(), CV_FOURCC('P','I','M','1'), _FPS, _frameSize, true)) {
+#ifdef _DEBUG_PROCESS_THREADS
         qFatal("[MPG_WRITER] - exec() - Error opening stream (1)");
+#endif //_DEBUG_PROCESS_THREADS
+        return -1;
+    }
+#ifdef _DEBUG_PROCESS_THREADS
     qDebug("[MPG_WRITER] - exec() - Starting");
+#endif //_DEBUG_PROCESS_THREADS
     while(1) {
         if (_inBuffer.isEmpty()) {
             msleep(100);
@@ -92,11 +90,17 @@ int MPGWriter::exec() {
             if(_inBuffMtx.tryLock(2000)) {
                 Mat src = _inBuffer.dequeue().clone();
                 if (checkFrame(src)) {
+#ifdef _DEBUG_PROCESS_THREADS
                     qDebug() << "[MPG_WRITER] - exec() - Adjusting video frame size to:" << _frameSize.width << "x" << _frameSize.height;
+#endif //_DEBUG_PROCESS_THREADS
                     delete _outStream;
                     _outStream = new VideoWriter();
-                    if(!_outStream->open(_videoFileName.toStdString(), CV_FOURCC('D','I','V','X'), _FPS, _frameSize, true))
+                    if(!_outStream->open(_videoFileName.toStdString(), CV_FOURCC('D','I','V','X'), _FPS, _frameSize, true)) {
+#ifdef _DEBUG_PROCESS_THREADS
                         qFatal("[MPG_WRITER] - exec() - Error opening stream (2)");
+#endif //_DEBUG_PROCESS_THREADS
+                        return -1;
+                    }
                 }
                 _outBuffer << src;
                 cvtColor(src, src, CV_RGB2BGR);
@@ -108,8 +112,10 @@ int MPGWriter::exec() {
                 _outStream->write(src);
                 emit availableProcessedFrame();
                 _inBuffMtx.unlock();
+#ifdef _DEBUG_PROCESS_THREADS
             } else {
                 qWarning() << "[MPG_WRITER] - exec() - Unable to lock Mutex";
+#endif //_DEBUG_PROCESS_THREADS
             }
         }
     }
@@ -121,7 +127,9 @@ bool MPGWriter::hasToolBar() {
 }
 
 void MPGWriter::run() {
+#ifdef _DEBUG_PROCESS_THREADS
     qDebug() << "[MPGWriter] - run() - Starting";
+#endif //_DEBUG_PROCESS_THREADS
     QDateTime myDateTime;
     _startRecordAction->setEnabled(false);
     _stopRecordAction->setEnabled(true);
@@ -140,7 +148,9 @@ void MPGWriter::stop() {
     _stopRecordAction->setEnabled(false);
     if (isRunning()) {
         terminate();
+#ifdef _DEBUG_PROCESS_THREADS
         qDebug() << "[MPG_WRITER] - stop() - Stopped";
+#endif //_DEBUG_PROCESS_THREADS
     }
 }
 
