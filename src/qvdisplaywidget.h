@@ -6,17 +6,15 @@
 
 using namespace cv;
 
-namespace Ui {
-class QVDisplayWidget;
-}
-
-class QVDisplayWidget : public QWidget
+class QVDisplayWidget : public QGraphicsView
 {
     Q_OBJECT
 
 private:
     bool _mouseTracking;
+    QGraphicsPixmapItem *_pixmap;
     QPoint _pointerPos;
+    QGraphicsScene *_scene;
     QLabel *_textLabel;
 
     void mousePressEvent(QMouseEvent *event);
@@ -38,8 +36,6 @@ public:
 
     bool isMouseTrackingEnabled();
 
-private:
-    Ui::QVDisplayWidget *ui;
 };
 
 #endif // QVDISPLAYWIDGET_H

@@ -1,34 +1,30 @@
 #include "qvdisplaywidget.h"
-#include "ui_qvdisplaywidget.h"
 
 #include "camerathread.h"
 
-#include <QDebug>
-
-QVDisplayWidget::QVDisplayWidget(QWidget *parent) :
-    QWidget(parent),
-    ui(new Ui::QVDisplayWidget)
-{
-    ui->setupUi(this);
+QVDisplayWidget::QVDisplayWidget(QWidget *parent) : QGraphicsView(parent) {
     _mouseTracking = false;
     _pointerPos = QPoint(-1, -1);
+    _scene = new QGraphicsScene(this);
     _textLabel = new QLabel(this);
-
+    setScene(_scene);
+    _pixmap = NULL;
     _firsTime = true;
 }
 
-QVDisplayWidget::~QVDisplayWidget()
-{
-    delete ui;
+QVDisplayWidget::~QVDisplayWidget() {
 }
 
 void QVDisplayWidget::displayImage(Mat src) {
     if (_firsTime) {
         setGeometry(10, 10, src.cols, src.rows);
-        ui->imageLabel->setGeometry(0, 0, src.cols, src.rows);
         _firsTime = false;
     }
-    ui->imageLabel->setPixmap(QPixmap::fromImage(CameraThread::mat2qImage(src)));
+    _scene->removeItem(_pixmap);
+    if (_pixmap != NULL)
+        delete _pixmap;
+    _pixmap = new QGraphicsPixmapItem(QPixmap::fromImage(CameraThread::mat2qImage(src)));
+    _scene->addItem(_pixmap);
     setMouseTracking(_mouseTracking);
 }
 

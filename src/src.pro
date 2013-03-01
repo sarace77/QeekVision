@@ -45,15 +45,14 @@ RESOURCES += \
 FORMS += \
     v4lsettings.ui \
     gigesettings.ui \
-    qvdisplaywidget.ui \
     qvdriverselect.ui
 
-DEFINES += _DEBUG_CAPTURE_THREADS \
-            _DEBUG_CONFIGURATION_OBJECTS \
-            _DEBUG_PROCESS_THREADS
+############################
+# Optional defines Section #
+############################
 
-#CONFIG += debug_and_release
+# Comment/Uncomment One or more Defines below in order to enable remove debug complation flags
 
-#CONFIG(debug, debug|release) {
-#}
-
+DEFINES += _DEBUG_CAPTURE_THREADS
+DEFINES += _DEBUG_CONFIGURATION_OBJECTS
+DEFINES += _DEBUG_PROCESS_THREADS
