@@ -13,7 +13,7 @@ CameraThread::CameraThread(QObject *parent) : QThread(parent) {
     _stopAction->setToolTip("Stop Capture Stream");
     _stopAction->setShortcut(Qt::Key_Space);
     _stopAction->setEnabled(false);
-    _settingsAction = new QAction(QIcon(":/icons/settings.png"), "Stop", this);
+    _settingsAction = new QAction(QIcon(":/icons/settings.png"), "Settings", this);
     _settingsAction->setToolTip("Open Configuration Dialog");
     _settingsAction->setShortcut(Qt::CTRL+Qt::Key_T);
     _settingsAction->setEnabled(true);
@@ -32,6 +32,17 @@ CameraThread::CameraThread(QObject *parent) : QThread(parent) {
     _threadToolBar->addWidget(_imageFormat);
     _threadToolBar->addWidget(_bgr);
     _threadToolBar->addWidget(_rgb);
+
+    /// Menu
+    _cameraMenu = new QMenu("&Camera");
+    QList<QAction *> _menuActions;
+    _menuActions.append(_startAction);
+    _menuActions.append(_stopAction);
+    _cameraMenu->addActions(_menuActions);
+    _cameraMenu->addSeparator();
+    _menuActions.clear();
+    _menuActions.append(_settingsAction);
+    _cameraMenu->addActions(_menuActions);
 
     /// ToolBar signals connections
     connect(_startAction, SIGNAL(triggered()), this, SLOT(start()));
@@ -68,6 +79,10 @@ QImage CameraThread::mat2qImage(Mat src) {
         break;
     }
     return QImage(src.data, src.cols, src.rows, QImage::Format_RGB888);
+}
+
+QMenu *CameraThread::menu() {
+    return _cameraMenu;
 }
 
 QToolBar *CameraThread::toolBar() {

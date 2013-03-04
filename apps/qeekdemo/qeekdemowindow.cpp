@@ -18,7 +18,6 @@ QeekDemoWindow::QeekDemoWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui
     driverSelectDialog->move(200, 200);
     driverSelectDialog->show();
     ui->actionSaveFrame->setEnabled(false);
-
 }
 
 QeekDemoWindow::~QeekDemoWindow() {
@@ -42,6 +41,7 @@ void QeekDemoWindow::acceptedDriverSelection() {
     }
     connect(capture3ad, SIGNAL(availableFrame()), this, SLOT(showFrame()));
     addToolBar(capture3ad->toolBar());
+    ui->menubar->addMenu(capture3ad->menu());
 }
 
 void QeekDemoWindow::on_actionSaveFrame_triggered() {

@@ -25,6 +25,7 @@ public:
 
     float getFPS();
     QToolBar *toolBar();
+    QMenu *menu();
 
     virtual int getHeight() = 0;
     virtual int getWidth() = 0;
@@ -46,6 +47,9 @@ protected:
     QAction     *_settingsAction, *_startAction, *_stopAction;
     QLabel      *_imageFormat;
     QRadioButton *_bgr, *_rgb;
+
+    /// Menu
+    QMenu *_cameraMenu;
 
     /// Internal Frame Buffer
     QMutex       _mutex;
