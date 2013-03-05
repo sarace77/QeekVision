@@ -1,8 +1,8 @@
 TEMPLATE = subdirs
 
-SUBDIRS += qeekdemo \
-    bgSubtract \
-    thermographyDemo \
-    videoWriterDemo \
-    circlesDemo
+SUBDIRS += qeekdemo #\
+    #bgSubtract \
+    #thermographyDemo \
+    #videoWriterDemo \
+    #circlesDemo
 

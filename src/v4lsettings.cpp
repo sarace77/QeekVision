@@ -31,6 +31,7 @@ V4LSettings::V4LSettings(QWidget *parent) : QMainWindow(parent), ui(new Ui::V4LS
 
     connect(ui->buttonBox, SIGNAL(accepted()), this, SLOT(signalAccepted()));
     connect(ui->buttonBox, SIGNAL(rejected()), this, SLOT(signalRejected()));
+    signalAccepted();
 }
 
 V4LSettings::~V4LSettings()

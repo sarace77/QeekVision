@@ -50,10 +50,6 @@ private:
     /// Used to Open Capture Device and set V4l Conversion format
     void openCaptureDevice();
 
-    /// Configuration UI Widgets
-    QLabel *_frameSizeLabel;
-    QComboBox *_frameSize;
-
 private slots:
     void configure();
     int exec();

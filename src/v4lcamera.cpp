@@ -20,7 +20,6 @@ V4LCamera::V4LCamera() {
     _deviceName = "";
     _fd = -1;
 
-
     /// Buffer select() Timeout Init
     _tv.tv_sec = 2;
     _tv.tv_usec = 0;
@@ -28,15 +27,10 @@ V4LCamera::V4LCamera() {
     /// V4L Buffer Type init
     _type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
-    _frameSize = new QComboBox();
-    _frameSize->setMinimumWidth(100);
-    _frameSize->setEnabled(false);
-    _frameSizeLabel = new QLabel("Frame Size: ");
-    _threadToolBar->addSeparator();
-    _threadToolBar->addWidget(_frameSizeLabel);
-    _threadToolBar->addWidget(_frameSize);
+    _rgb->setChecked(true);
 
     connect(_settingsAction, SIGNAL(triggered()), _configEngine, SLOT(configRequest()));
+    configure();
 }
 
 V4LCamera::~V4LCamera() {
@@ -53,12 +47,14 @@ void V4LCamera::configure() {
     }
     else {
         _startAction->setEnabled(true);
-        _frameSize->setEnabled(true);
-        QStringList fSizeItems = _configEngine->getSupportedFrameSizes();
-        QString selectedSize = QString("%1x%2").arg(_configEngine->getConfiguration().configuration.fmt.pix.width).arg(_configEngine->getConfiguration().configuration.fmt.pix.height);
-        _frameSize->addItems(fSizeItems);
-        _frameSize->setCurrentIndex(fSizeItems.indexOf(selectedSize));
-        connect(_frameSize, SIGNAL(currentIndexChanged(QString)), _configEngine, SLOT(frameSizeChangeRequest(QString)));
+        if (frameSizeList.isEmpty()) {
+            frameSizeList = _configEngine->getSupportedFrameSizes();
+            QString selectedSize = QString("%1x%2").arg(_configEngine->getConfiguration().configuration.fmt.pix.width).arg(_configEngine->getConfiguration().configuration.fmt.pix.height);
+            frameSizeList.swap(frameSizeList.indexOf(selectedSize), 0);
+        } else {
+//            _configEngine->frameSizeChangeRequest(frameSizeList.at(0));
+            _fmt = _configEngine->getConfiguration().configuration;
+        }
         emit configurated();
     }
 }
@@ -169,13 +165,13 @@ void V4LCamera::openCaptureDevice() {
 
 void V4LCamera::run() {
     /// Enabling/Disabling Toolbar Buttons
-    _frameSize->setEnabled(false);
     _startAction->setEnabled(false);
     _stopAction->setEnabled(true);
     _settingsAction->setEnabled(false);
 
-    if (!isConfigurated())
-        configure();
+    //configure();
+    if (frameSizeList.count())
+        _configEngine->frameSizeChangeRequest(frameSizeList.at(0));
 
     /// Opening Capture Device
     openCaptureDevice();
@@ -231,7 +227,6 @@ void V4LCamera::stop() {
            munmap(_buffers[i].start, _buffers[i].length);
     close(_fd);
     terminate();
-    _frameSize->setEnabled(true);
     _startAction->setEnabled(true);
     _stopAction->setEnabled(false);
     _settingsAction->setEnabled(true);

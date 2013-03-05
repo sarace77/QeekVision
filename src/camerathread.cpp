@@ -8,7 +8,7 @@ CameraThread::CameraThread(QObject *parent) : QThread(parent) {
     _startAction = new QAction(QIcon(":/icons/start.png"), "Start", this);
     _startAction->setToolTip("Start Capture Stream");
     _startAction->setShortcut(Qt::Key_Space);
-    _startAction->setEnabled(false);
+    _startAction->setEnabled(true);
     _stopAction = new QAction(QIcon(":/icons/stop.png"), "Stop", this);
     _stopAction->setToolTip("Stop Capture Stream");
     _stopAction->setShortcut(Qt::Key_Space);
@@ -17,36 +17,27 @@ CameraThread::CameraThread(QObject *parent) : QThread(parent) {
     _settingsAction->setToolTip("Open Configuration Dialog");
     _settingsAction->setShortcut(Qt::CTRL+Qt::Key_T);
     _settingsAction->setEnabled(true);
-    _imageFormat = new QLabel("Image Format:");
-    _bgr = new QRadioButton("BGR");
-    _bgr->setChecked(true);
-    _bgr->setEnabled(false);
-    _rgb = new QRadioButton("RGB");
-    _rgb->setEnabled(false);
-    _threadToolBar = new QToolBar("Thread Commands");
-    _threadToolBar->setObjectName("threadToolBar");
-    _threadToolBar->addAction(_startAction);
-    _threadToolBar->addAction(_stopAction);
-    _threadToolBar->addAction(_settingsAction);
-    _threadToolBar->addSeparator();
-    _threadToolBar->addWidget(_imageFormat);
-    _threadToolBar->addWidget(_bgr);
-    _threadToolBar->addWidget(_rgb);
+    _bgr = new QAction("BGR Image Format", this);
+    _bgr->setCheckable(true);
+    _gray = new QAction("Grayscale Image Format", this);
+    _gray->setCheckable(true);
+    _rgb = new QAction("RGB Image Format", this);
+    _rgb->setCheckable(true);
 
-    /// Menu
-    _cameraMenu = new QMenu("&Capture");
-    QList<QAction *> _menuActions;
-    _menuActions.append(_startAction);
-    _menuActions.append(_stopAction);
-    _cameraMenu->addActions(_menuActions);
-    _cameraMenu->addSeparator();
-    _menuActions.clear();
-    _menuActions.append(_settingsAction);
-    _cameraMenu->addActions(_menuActions);
+    actionList.append(_startAction);
+    actionList.append(_stopAction);
+    actionList.append(_settingsAction);
+    formatList.append(_bgr);
+    formatList.append(_rgb);
+    formatList.append(_gray);
 
     /// ToolBar signals connections
     connect(_startAction, SIGNAL(triggered()), this, SLOT(start()));
     connect(_stopAction, SIGNAL(triggered()), this, SLOT(stop()));
+
+    connect(_bgr, SIGNAL(toggled(bool)), this, SLOT(convert2BGR(bool)));
+    connect(_gray, SIGNAL(toggled(bool)), this, SLOT(convert2Gray(bool)));
+    connect(_rgb, SIGNAL(toggled(bool)), this, SLOT(convert2RGB(bool)));
 }
 
 CameraThread::~CameraThread(){ }
@@ -65,8 +56,10 @@ Mat CameraThread::getFrame() {
         return Mat(getHeight(), getWidth(), CV_8UC3, Scalar(0,0,0));
     }
     Mat frame = _cvMatbuffer.dequeue();
-    if (_rgb->isChecked())
-        cvtColor(frame, frame, CV_RGB2BGR);
+    if (_bgr->isChecked() && frame.channels() > 2)
+        cvtColor(frame, frame, CV_BGR2RGB);
+    if (_gray->isChecked() && frame.channels() > 2)
+        cvtColor(frame, frame, CV_RGB2GRAY);
     return frame;
 }
 
@@ -81,12 +74,26 @@ QImage CameraThread::mat2qImage(Mat src) {
     return QImage(src.data, src.cols, src.rows, QImage::Format_RGB888);
 }
 
-QMenu *CameraThread::menu() {
-    return _cameraMenu;
+void CameraThread::convert2BGR(bool value) {
+    if(value) {
+    _bgr->setChecked(value);
+    _gray->setChecked(!value);
+    _rgb->setChecked(!value);
+    }
 }
 
-QToolBar *CameraThread::toolBar() {
-    return _threadToolBar;
+void CameraThread::convert2Gray(bool value) {
+    if(value) {
+    _bgr->setChecked(!value);
+    _gray->setChecked(value);
+    _rgb->setChecked(!value);
+    }
 }
 
-
+void CameraThread::convert2RGB(bool value) {
+    if(value) {
+    _bgr->setChecked(!value);
+    _gray->setChecked(!value);
+    _rgb->setChecked(value);
+    }
+}

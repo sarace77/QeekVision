@@ -17,6 +17,7 @@ QeekDemoWindow::QeekDemoWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui
     ui->actionSaveFrame->setEnabled(false);
     ui->menubar->addMenu(device->cameraMenu());
     ui->menubar->addMenu(device->captureMenu());
+    ui->menubar->addMenu(device->frameFormatMenu());
 
     connect(device, SIGNAL(cameraTypeChanged()), this, SLOT(deviceChanged()));
     connect(capture3ad, SIGNAL(availableFrame()), this, SLOT(showFrame()));
@@ -37,7 +38,7 @@ void QeekDemoWindow::on_actionSaveFrame_triggered() {
 
 void QeekDemoWindow::showFrame() {
     ui->actionSaveFrame->setEnabled(true);
-    this->resize(capture3ad->getWidth(), capture3ad->getHeight() + HEIGHT_OFFSET + capture3ad->toolBar()->size().height());
+    this->resize(capture3ad->getWidth(), capture3ad->getHeight() + HEIGHT_OFFSET); // + capture3ad->toolBar()->size().height());
     currentFrame = capture3ad->getFrame();
     imageWidget->displayImage(currentFrame);
     if (imageWidget->hasMouseTracking()) {
@@ -50,6 +51,7 @@ void QeekDemoWindow::deviceChanged() {
     ui->menubar->addMenu(ui->menu_File);
     ui->menubar->addMenu(device->cameraMenu());
     ui->menubar->addMenu(device->captureMenu());
+    ui->menubar->addMenu(device->frameFormatMenu());
     disconnect(capture3ad, SIGNAL(availableFrame()), this, SLOT(showFrame()));
     capture3ad = device->selectedCamera;
     connect(capture3ad, SIGNAL(availableFrame()), this, SLOT(showFrame()));

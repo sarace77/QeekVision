@@ -24,8 +24,10 @@ public:
     ~CameraThread();
 
     float getFPS();
-    QToolBar *toolBar();
-    QMenu *menu();
+
+    QList<QAction* >    actionList;
+    QList<QAction* >    formatList;
+    QStringList         frameSizeList;
 
     virtual int getHeight() = 0;
     virtual int getWidth() = 0;
@@ -43,13 +45,7 @@ signals:
 
 protected:
     /// ToolBar Widgets
-    QToolBar    *_threadToolBar;
-    QAction     *_settingsAction, *_startAction, *_stopAction;
-    QLabel      *_imageFormat;
-    QRadioButton *_bgr, *_rgb;
-
-    /// Menu
-    QMenu *_cameraMenu;
+    QAction     *_settingsAction, *_startAction, *_stopAction, *_bgr, *_rgb, *_gray;
 
     /// Internal Frame Buffer
     QMutex       _mutex;
@@ -62,6 +58,12 @@ protected:
 protected slots:
     virtual void configure() = 0;
     void viewCameraNetInfo() { }
+
+private slots:
+    void convert2BGR(bool value);
+    void convert2Gray(bool value);
+    void convert2RGB(bool value);
+
 };
 
 #endif // CAMERATHREAD_H

@@ -21,7 +21,7 @@ public:
 
     QStringList getSupportedFrameSizes();
 
-    static struct v4l2_format encodeConfigurationStringList(QStringList sConfig);
+    static struct v4l2_format encodeConfigurationStringList(QStringList sConfig, v4l2_format old_config);
 
 public slots:
     void configRequest(QStringList sConfig = QStringList());
