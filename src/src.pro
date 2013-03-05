@@ -21,7 +21,8 @@ HEADERS += \
     ellipseobject.h \
     qvdisplaywidget.h \
     qvdriverselect.h \
-    histograms.h
+    histograms.h \
+    camerawrapper.h
 
 SOURCES += \
     camerathread.cpp \
@@ -37,7 +38,8 @@ SOURCES += \
     ellipseobject.cpp \
     qvdisplaywidget.cpp \
     qvdriverselect.cpp \
-    histograms.cpp
+    histograms.cpp \
+    camerawrapper.cpp
 
 RESOURCES += \
     resources.qrc

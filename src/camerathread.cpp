@@ -34,7 +34,7 @@ CameraThread::CameraThread(QObject *parent) : QThread(parent) {
     _threadToolBar->addWidget(_rgb);
 
     /// Menu
-    _cameraMenu = new QMenu("&Camera");
+    _cameraMenu = new QMenu("&Capture");
     QList<QAction *> _menuActions;
     _menuActions.append(_startAction);
     _menuActions.append(_stopAction);

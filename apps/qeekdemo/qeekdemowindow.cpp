@@ -8,40 +8,24 @@
 QeekDemoWindow::QeekDemoWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::QeekDemoWindow) {
     ui->setupUi(this);
 
-    capture3ad = new V4LCamera();
-    driverSelectDialog = new QVDriverSelect(DRIVER_V4L);
+    device = new CameraWrapper();
+
+    capture3ad = device->selectedCamera;
+
     imageWidget = new QVDisplayWidget(ui->centralwidget);
 
-    connect(driverSelectDialog, SIGNAL(accepted()), this, SLOT(acceptedDriverSelection()));
-    connect(driverSelectDialog, SIGNAL(accepted()), this, SLOT(show()));
-
-    driverSelectDialog->move(200, 200);
-    driverSelectDialog->show();
     ui->actionSaveFrame->setEnabled(false);
+    ui->menubar->addMenu(device->cameraMenu());
+    ui->menubar->addMenu(device->captureMenu());
+
+    connect(device, SIGNAL(cameraTypeChanged()), this, SLOT(deviceChanged()));
+    connect(capture3ad, SIGNAL(availableFrame()), this, SLOT(showFrame()));
 }
 
 QeekDemoWindow::~QeekDemoWindow() {
     delete ui;
-    if (capture3ad) {
-        if (capture3ad->isRunning())
-            capture3ad->stop();
-        capture3ad->deleteLater();
-    }
+    device->deleteLater();
     delete imageWidget;
-}
-
-void QeekDemoWindow::acceptedDriverSelection() {
-    switch(driverSelectDialog->getDriverType()) {
-    case DRIVER_V4L:
-        break;
-    default:
-        delete capture3ad;
-        capture3ad = new OpenCVCamera();
-        break;
-    }
-    connect(capture3ad, SIGNAL(availableFrame()), this, SLOT(showFrame()));
-    addToolBar(capture3ad->toolBar());
-    ui->menubar->addMenu(capture3ad->menu());
 }
 
 void QeekDemoWindow::on_actionSaveFrame_triggered() {
@@ -59,4 +43,14 @@ void QeekDemoWindow::showFrame() {
     if (imageWidget->hasMouseTracking()) {
         ui->statusbar->showMessage(QString("Pos: (%1,%2)").arg(imageWidget->getMouseXPos()).arg(imageWidget->getMouseYPos()));
     }
+}
+
+void QeekDemoWindow::deviceChanged() {
+    ui->menubar->clear();
+    ui->menubar->addMenu(ui->menu_File);
+    ui->menubar->addMenu(device->cameraMenu());
+    ui->menubar->addMenu(device->captureMenu());
+    disconnect(capture3ad, SIGNAL(availableFrame()), this, SLOT(showFrame()));
+    capture3ad = device->selectedCamera;
+    connect(capture3ad, SIGNAL(availableFrame()), this, SLOT(showFrame()));
 }

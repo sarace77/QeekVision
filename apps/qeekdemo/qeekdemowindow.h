@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include "camerathread.h"
+#include "camerawrapper.h"
 #include "qvdisplaywidget.h"
 #include "qvdriverselect.h"
 
@@ -16,13 +17,14 @@ class QeekDemoWindow : public QMainWindow
 private:
     Ui::QeekDemoWindow *ui;
     CameraThread *capture3ad;
+    CameraWrapper *device;
     QVDisplayWidget *imageWidget;
     QVDriverSelect *driverSelectDialog;
 
     Mat currentFrame;
 
 private slots:
-    void acceptedDriverSelection();
+    void deviceChanged();
     void on_actionSaveFrame_triggered();
     void showFrame();
 
