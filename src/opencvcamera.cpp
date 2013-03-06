@@ -9,6 +9,8 @@ OpenCVCamera::OpenCVCamera() : CameraThread() {
 #endif //_DEBUG_CAPTURE_THREADS
     _settingsAction->setEnabled(false);
     _bgr->setChecked(true);
+    _bgr->setText("Convert to RGB Image Format");
+    _rgb->setText("Native Image Format (BGR)");
     connect(_settingsAction, SIGNAL(triggered()), this, SLOT(configure()));
 }
 

@@ -17,11 +17,11 @@ CameraThread::CameraThread(QObject *parent) : QThread(parent) {
     _settingsAction->setToolTip("Open Configuration Dialog");
     _settingsAction->setShortcut(Qt::CTRL+Qt::Key_T);
     _settingsAction->setEnabled(true);
-    _bgr = new QAction("BGR Image Format", this);
+    _bgr = new QAction("Convert to BGR Image Format", this);
     _bgr->setCheckable(true);
-    _gray = new QAction("Grayscale Image Format", this);
+    _gray = new QAction("Convert to Grayscale", this);
     _gray->setCheckable(true);
-    _rgb = new QAction("RGB Image Format", this);
+    _rgb = new QAction("Convert to RGB Image Format", this);
     _rgb->setCheckable(true);
 
     actionList.append(_startAction);
@@ -47,8 +47,6 @@ float CameraThread::getFPS() {
 }
 
 Mat CameraThread::getFrame() {
-    _rgb->setEnabled(isRunning());
-    _bgr->setEnabled(isRunning());
     if(_cvMatbuffer.isEmpty()) {
 #ifdef _DEBUG_CAPTURE_THREADS
         qWarning() << "[CAMERA_THREAD] << getFrame() - No Available frame in capture buffer!";

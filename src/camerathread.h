@@ -57,7 +57,7 @@ protected:
 
 protected slots:
     virtual void configure() = 0;
-    void viewCameraNetInfo() { }
+//    void viewCameraNetInfo() { }
 
 private slots:
     void convert2BGR(bool value);

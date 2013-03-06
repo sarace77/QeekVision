@@ -3,6 +3,8 @@
 V4LConfigurationEngine::V4LConfigurationEngine(QObject *parent) : QObject(parent) {
     _settingsDialog = new V4LSettings();
     settingsAccepted();
+    _deviceName = _settingsDialog->getV4L2DeviceName();
+    _stored_configuration = _settingsDialog->getV4L2Config();
     connect(_settingsDialog, SIGNAL(accepted()), this, SLOT(settingsAccepted()));
     connect(_settingsDialog, SIGNAL(rejected()), this, SLOT(settingsRejected()));
 }
@@ -12,15 +14,14 @@ V4LConfigurationEngine::~V4LConfigurationEngine() {
 }
 
 void V4LConfigurationEngine::configRequest(QStringList sConfig) {
-    struct v4l2_format config_format;
     if ( sConfig.empty()) {
 #ifdef _DEBUG_CONFIGURATION_OBJECTS
         qWarning() << "[V4L_CONFIGURATION_ENGINE] - configRequest() - Empty Configuration ";
 #endif //_DEBUG_CONFIGURATION_OBJECTS
-        if (_deviceName.isEmpty()) {
-            CLEAR(config_format);
-        }
+        if (_deviceName.isEmpty())
+            _settingsDialog->show();
     } else {
+        struct v4l2_format config_format;
 #ifdef _DEBUG_CONFIGURATION_OBJECTS
         qDebug() << "[V4L_CONFIGURATION_ENGINE] - configRequest() - Configuration received: " << sConfig;
 #endif //_DEBUG_CONFIGURATION_OBJECTS

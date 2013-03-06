@@ -18,7 +18,7 @@ QeekDemoWindow::QeekDemoWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui
     ui->menubar->addMenu(device->cameraMenu());
     ui->menubar->addMenu(device->captureMenu());
     ui->menubar->addMenu(device->frameFormatMenu());
-
+    addToolBar(device->toolbar());
     connect(device, SIGNAL(cameraTypeChanged()), this, SLOT(deviceChanged()));
     connect(capture3ad, SIGNAL(availableFrame()), this, SLOT(showFrame()));
 }

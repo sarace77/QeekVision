@@ -28,6 +28,7 @@ V4LCamera::V4LCamera() {
     _type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
     _rgb->setChecked(true);
+    _rgb->setText("Native Image Format (RGB)");
 
     connect(_settingsAction, SIGNAL(triggered()), _configEngine, SLOT(configRequest()));
     configure();
@@ -48,11 +49,11 @@ void V4LCamera::configure() {
     else {
         _startAction->setEnabled(true);
         if (frameSizeList.isEmpty()) {
+            frameSizeList.clear();
             frameSizeList = _configEngine->getSupportedFrameSizes();
             QString selectedSize = QString("%1x%2").arg(_configEngine->getConfiguration().configuration.fmt.pix.width).arg(_configEngine->getConfiguration().configuration.fmt.pix.height);
             frameSizeList.swap(frameSizeList.indexOf(selectedSize), 0);
         } else {
-//            _configEngine->frameSizeChangeRequest(frameSizeList.at(0));
             _fmt = _configEngine->getConfiguration().configuration;
         }
         emit configurated();

@@ -14,6 +14,7 @@ public:
     QMenu *cameraMenu();
     QMenu *captureMenu();
     QMenu *frameFormatMenu();
+    QToolBar *toolbar();
 
     CameraThread *selectedCamera;
 
@@ -23,21 +24,24 @@ signals:
 public slots:
 
 private:
-    QAction *selectOpenCV, *selectV4L;
-    QMenu *cameraTypeMenu, *_captureMenu, *_imageFormatMenu, *_imageFormatSubMenu;
-    OpenCVCamera *openCVCamera;
-    V4LCamera *v4lCamera;
-    QList<QAction* > _frameSizeActionList;
-    QSignalMapper *_resActionMapper;
+    QMenu               *_cameraMenu, *_captureMenu, *_frameMenu, *_frameSizeMenu;
+    QList<QAction* >    _frameSizeActionList;
+    QToolBar            *_mainToolBar;
+    QSignalMapper       *_resActionMapper;
+    QAction             *_selectOpenCV, *_selectV4L, *_settingsAction, *_startAction, *_stopAction;
+
+    OpenCVCamera        *_openCVCamera;
+    V4LCamera           *_v4lCamera;
 
     void updateResMenu();
 
 private slots:
     void disableMenu();
     void enableMenu();
-    void on_selectOpenCV_toggled(bool value);
-    void on_selectV4L_toggled(bool value);
-    void on_resolution_changed(int value);
+    void selectOpenCVToggled();
+    void selectV4LToggled();
+    void resolutionChanged(int value);
+    void updatePointers();
 };
 
 #endif // CAMERAWRAPPER_H
