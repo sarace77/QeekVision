@@ -19,9 +19,11 @@ public:
     V4LConfigurationEngine(QObject *parent = 0);
     ~V4LConfigurationEngine();
 
+    static struct v4l2_format encodeConfigurationStringList(QStringList sConfig, v4l2_format old_config);
+
     QStringList getSupportedFrameSizes();
 
-    static struct v4l2_format encodeConfigurationStringList(QStringList sConfig, v4l2_format old_config);
+    void resetConfiguration();
 
 public slots:
     void configRequest(QStringList sConfig = QStringList());

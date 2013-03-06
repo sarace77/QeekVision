@@ -50,6 +50,8 @@ private:
     /// Used to Open Capture Device and set V4l Conversion format
     void openCaptureDevice();
 
+    bool settingsDialogRequest;
+
 private slots:
     void configure();
     int exec();

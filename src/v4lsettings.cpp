@@ -490,7 +490,7 @@ QStringList V4LSettings::getFormatStringList(struct v4l2_format fmt) {
 }
 
 int V4LSettings::qioctl(int fh, int request, void *arg, QString module) {
-    module = module.toUpper();
+    const char *cModule = module.toUpper().toAscii().constData();
     int res;
     do {
         res = ioctl(fh, request, arg);
@@ -500,43 +500,43 @@ int V4LSettings::qioctl(int fh, int request, void *arg, QString module) {
         QString sRequest;
         switch(request) {
         case VIDIOC_DQBUF:
-            sRequest =  "VIDIOC_DQBUF";
+            sRequest =  "[VIDIOC_DQBUF]";
             break;
         case VIDIOC_ENUM_FMT:
-            sRequest =  "VIDIOC_ENUM_FMT";
+            sRequest =  "[VIDIOC_ENUM_FMT]";
             break;
         case VIDIOC_ENUM_FRAMESIZES:
-            sRequest =  "VIDIOC_ENUM_FRAMESIZES";
+            sRequest =  "[VIDIOC_ENUM_FRAMESIZES]";
             break;
         case VIDIOC_G_FMT:
-            sRequest =  "VIDIOC_G_FMT";
+            sRequest =  "[VIDIOC_G_FMT]";
             break;
         case VIDIOC_QBUF:
-            sRequest =  "VIDIOC_QBUF";
+            sRequest =  "[VIDIOC_QBUF]";
             break;
         case VIDIOC_QUERYBUF:
-            sRequest =  "VIDIOC_QUERYBUF";
+            sRequest =  "[VIDIOC_QUERYBUF]";
             break;
         case VIDIOC_QUERYCAP:
-            sRequest =  "VIDIOC_QUERYCAP";
+            sRequest =  "[VIDIOC_QUERYCAP]";
             break;
         case VIDIOC_REQBUFS:
-            sRequest =  "VIDIOC_REQBUFS";
+            sRequest =  "[VIDIOC_REQBUFS]";
             break;
         case VIDIOC_S_FMT:
-            sRequest =  "VIDIOC_S_FMT";
+            sRequest =  "[VIDIOC_S_FMT]";
             break;
         case VIDIOC_STREAMOFF:
-            sRequest =  "VIDIOC_STREAMOFF";
+            sRequest =  "[VIDIOC_STREAMOFF]";
             break;
         case VIDIOC_TRY_FMT:
-            sRequest =  "VIDIOC_TRY_FMT";
+            sRequest =  "[VIDIOC_TRY_FMT]";
             break;
         default:
             sRequest = "[Unmapped Request]";
             break;
         }
-        if (errno == EINVAL) {
+        if (errno == EINVAL || errno == EBUSY) {
             switch(request) {
             case VIDIOC_ENUM_FMT:
             case VIDIOC_ENUM_FRAMESIZES:
@@ -544,8 +544,8 @@ int V4LSettings::qioctl(int fh, int request, void *arg, QString module) {
                 break;
             default:
 #ifdef _DEBUG_CONFIGURATION_OBJECTS
-                qWarning() << "[" + sRequest + "] called by [" + module + "] returns error #" + \
-                              QString("%1").arg(errno) + " (" + QString(strerror(errno)).toUpper() +")";
+                qWarning() << "***" << sRequest.toAscii().constData() << "called by [" << cModule << "] returns error" << \
+                              errno << "(" << QString(strerror(errno)).toUpper().toAscii().constData() << ") ***";
 #endif //_DEBUG_CONFIGURATION_OBJECTS
                 break;
             }

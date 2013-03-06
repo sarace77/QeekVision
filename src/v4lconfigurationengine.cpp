@@ -1,7 +1,21 @@
 #include "v4lconfigurationengine.h"
 
+#ifdef _DEBUG_CONFIGURATION_OBJECTS
+void _print_v4l2_format_struct(v4l2_format config1, v4l2_format config2) {
+    qDebug() << "bytesperline:" << config1.fmt.pix.bytesperline << "," << config2.fmt.pix.bytesperline;
+    qDebug() << "colorspace:" << config1.fmt.pix.colorspace << "," << config2.fmt.pix.colorspace;
+    qDebug() << "field:" << config1.fmt.pix.field << "," << config2.fmt.pix.field;
+    qDebug() << "field:" << config1.fmt.pix.height << "," << config2.fmt.pix.height;
+    qDebug() << "pixelformat:" << config1.fmt.pix.pixelformat << "," << config2.fmt.pix.pixelformat;
+    qDebug() << "priv:" << config1.fmt.pix.priv << "," << config2.fmt.pix.priv;
+    qDebug() << "sizeimage:" << config1.fmt.pix.sizeimage << "," << config2.fmt.pix.sizeimage;
+    qDebug() << "width:" << config1.fmt.pix.width << "," << config2.fmt.pix.width;
+}
+#endif //_DEBUG_CONFIGURATION_OBJECTS
+
 V4LConfigurationEngine::V4LConfigurationEngine(QObject *parent) : QObject(parent) {
     _settingsDialog = new V4LSettings();
+    CLEAR(_stored_configuration);
     settingsAccepted();
     _deviceName = _settingsDialog->getV4L2DeviceName();
     _stored_configuration = _settingsDialog->getV4L2Config();
@@ -61,8 +75,10 @@ void V4LConfigurationEngine::configurationQuery(struct v4l2_format config) {
         qWarning() << "[V4L_CONFIGURATION_ENGINE] - configurationQuery() - Invalid Configuration ";
 #endif //_DEBUG_CONFIGURATION_OBJECTS
         _settingsDialog->show();
+        captureDevice.close();
         return;
     }
+
     if (V4LSettings::qioctl(captureDevice.handle(), VIDIOC_S_FMT, &config, "V4LConfigurationEngine::configurationQuery();") != 0) {
 #ifdef _DEBUG_CONFIGURATION_OBJECTS
         qWarning() << "[V4L_CONFIGURATION_ENGINE] - configurationQuery() - Unable to set selected framesize" \
@@ -71,32 +87,11 @@ void V4LConfigurationEngine::configurationQuery(struct v4l2_format config) {
     }
     if (V4LSettings::qioctl(captureDevice.handle(), VIDIOC_G_FMT, &_stored_configuration, "V4LConfigurationEngine::configurationQuery();") != 0) {
 #ifdef _DEBUG_CONFIGURATION_OBJECTS
-        qWarning("[V4L_CONFIGURATION_ENGINE] - configurationQuery() - Unable to set selected framesize");
+        qWarning("[V4L_CONFIGURATION_ENGINE] - configurationQuery() - Unable to get current Configuration");
 #endif //_DEBUG_CONFIGURATION_OBJECTS
     }
     captureDevice.close();
     emit availableConfiguration();
-}
-
-CaptureDevice V4LConfigurationEngine::getConfiguration() {
-    CaptureDevice device;
-    device.deviceName = _deviceName;
-    device.configuration = _stored_configuration;
-    return device;
-}
-
-QStringList V4LConfigurationEngine::getSupportedFrameSizes() {
-    return _settingsDialog->supportedFrameRates;
-}
-
-void V4LConfigurationEngine::settingsAccepted() {
-    _deviceName = _settingsDialog->getV4L2DeviceName();
-    _stored_configuration = _settingsDialog->getV4L2Config();
-    configurationQuery(_stored_configuration);
-}
-
-void V4LConfigurationEngine::settingsRejected() {
-    configurationQuery(_stored_configuration);
 }
 
 struct v4l2_format V4LConfigurationEngine::encodeConfigurationStringList(QStringList sConfig, v4l2_format old_config) {
@@ -122,14 +117,6 @@ struct v4l2_format V4LConfigurationEngine::encodeConfigurationStringList(QString
 #endif //_DEBUG_CONFIGURATION_OBJECTS
         return old_config;
     }
-//    config.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-//    if (V4LSettings::qioctl(captureDevice.handle(), VIDIOC_G_FMT, &config, "V4LConfigurationEngine::encodeConfigurationStringList()") != 0) {
-//        config.type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
-//        if (V4LSettings::qioctl(captureDevice.handle(), VIDIOC_G_FMT, &config, "V4LConfigurationEngine::encodeConfigurationStringList()") != 0) {
-//            CLEAR(config);
-//            return config;
-//        }
-//    }
     config = old_config;
     for (quint8 i = 1; i < sConfig.count(); i++) {
         if (resRegExp.exactMatch(sConfig.at(i))) {
@@ -156,4 +143,32 @@ void V4LConfigurationEngine::frameSizeChangeRequest(QString sReq) {
     sConfig += _deviceName;
     sConfig += sReq;
     configRequest(sConfig);
+}
+
+CaptureDevice V4LConfigurationEngine::getConfiguration() {
+    CaptureDevice device;
+    device.deviceName = _deviceName;
+    device.configuration = _stored_configuration;
+    return device;
+}
+
+QStringList V4LConfigurationEngine::getSupportedFrameSizes() {
+    return _settingsDialog->supportedFrameRates;
+}
+
+void V4LConfigurationEngine::resetConfiguration() {
+#ifdef _DEBUG_CONFIGURATION_OBJECTS
+    qDebug() << "[V4L_CONFIGURATION_ENGINE] - resetConfiguration()";
+#endif //_DEBUG_CONFIGURATION_OBJECTS
+    _settingsDialog->show();
+}
+
+void V4LConfigurationEngine::settingsAccepted() {
+    _deviceName = _settingsDialog->getV4L2DeviceName();
+    struct v4l2_format config_format = _settingsDialog->getV4L2Config();
+    configurationQuery(config_format);
+}
+
+void V4LConfigurationEngine::settingsRejected() {
+    configurationQuery(_stored_configuration);
 }

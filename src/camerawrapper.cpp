@@ -50,7 +50,8 @@ CameraWrapper::CameraWrapper(QObject *parent) :
     connect(_v4lCamera, SIGNAL(terminated()), this, SLOT(enableMenu()));
     connect(_openCVCamera, SIGNAL(started()), this, SLOT(disableMenu()));
     connect(_openCVCamera, SIGNAL(terminated()), this, SLOT(enableMenu()));
-
+    connect(_v4lCamera, SIGNAL(configurated()), this, SLOT(updateResMenu()));
+    connect(_openCVCamera, SIGNAL(configurated()), this, SLOT(updateResMenu()));
 }
 
 CameraWrapper::~CameraWrapper() {
@@ -93,7 +94,7 @@ void CameraWrapper::disableMenu() {
 
 void CameraWrapper::enableMenu() {
     _cameraMenu->setEnabled(true);
-    _frameSizeMenu->setEnabled(true);
+    _frameSizeMenu->setEnabled(!_selectOpenCV->isChecked());
     _startAction->setEnabled(true);
     _stopAction->setEnabled(false);
     _settingsAction->setEnabled(!_selectOpenCV->isChecked());
@@ -139,12 +140,14 @@ void CameraWrapper::updatePointers() {
     connect(_settingsAction, SIGNAL(triggered()), selectedCamera, SLOT(configure()));
     _captureMenu->clear();
     _captureMenu->addActions(selectedCamera->actionList);
+    _settingsAction->setEnabled(!_selectOpenCV->isChecked());
     updateResMenu();
 }
 
 void CameraWrapper::updateResMenu() {
     _frameSizeMenu->clear();
     if (!selectedCamera->frameSizeList.isEmpty()) {
+        _frameSizeMenu->setEnabled(true);
         _resActionMapper = new QSignalMapper(this);
         for (int i = 0; i < _frameSizeActionList.count(); i++)
             delete _frameSizeActionList.at(i);
@@ -159,6 +162,8 @@ void CameraWrapper::updateResMenu() {
         _frameSizeActionList.at(0)->setChecked(true);
         _frameSizeMenu->addActions(_frameSizeActionList);
         connect(_resActionMapper, SIGNAL(mapped(int)), this, SLOT(resolutionChanged(int)));
+    } else {
+        _frameSizeMenu->setEnabled(false);
     }
     _frameMenu->clear();
     _frameMenu->addMenu(_frameSizeMenu);

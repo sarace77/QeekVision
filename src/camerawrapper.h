@@ -33,8 +33,6 @@ private:
     OpenCVCamera        *_openCVCamera;
     V4LCamera           *_v4lCamera;
 
-    void updateResMenu();
-
 private slots:
     void disableMenu();
     void enableMenu();
@@ -42,6 +40,7 @@ private slots:
     void selectV4LToggled();
     void resolutionChanged(int value);
     void updatePointers();
+    void updateResMenu();
 };
 
 #endif // CAMERAWRAPPER_H

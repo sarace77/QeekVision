@@ -11,7 +11,6 @@
 V4LCamera::V4LCamera() {
     /// Configuration Engine Instance and signals connection
     _configEngine = new V4LConfigurationEngine();
-    connect(_configEngine, SIGNAL(availableConfiguration()), this, SLOT(configure()));
 
     /// Cleaning frame format;
     CLEAR(_fmt);
@@ -30,7 +29,10 @@ V4LCamera::V4LCamera() {
     _rgb->setChecked(true);
     _rgb->setText("Native Image Format (RGB)");
 
+    settingsDialogRequest = false;
+
     connect(_settingsAction, SIGNAL(triggered()), _configEngine, SLOT(configRequest()));
+    connect(_configEngine, SIGNAL(availableConfiguration()), this, SLOT(configure()));
     configure();
 }
 
@@ -42,9 +44,19 @@ V4LCamera::~V4LCamera() {
 void V4LCamera::configure() {
     CaptureDevice configuration = _configEngine->getConfiguration();
     _deviceName = configuration.deviceName;
-    _fmt = configuration.configuration;
-    if (!isConfigurated()){
-        _configEngine->configRequest();
+    struct v4l2_format config = configuration.configuration;
+    if (config.fmt.pix.width != _fmt.fmt.pix.width || config.fmt.pix.height != _fmt.fmt.pix.height) {
+        settingsDialogRequest = false;
+        _fmt = config;
+        frameSizeList.clear();
+    }
+    if (!isConfigurated() || settingsDialogRequest){
+#ifdef _DEBUG_CAPTURE_THREADS
+        qDebug() << "[CAMERA_THREAD::V4L_CAMERA] - configure() - Config Dialog Invoked! - Current Configuration: (" << \
+                      _deviceName << ", " << _fmt.fmt.pix.width << "x" << _fmt.fmt.pix.height << ")";
+#endif //_DEBUG_CAPTURE_THREADS
+//        settingsDialogRequest = false;
+        _configEngine->resetConfiguration();
     }
     else {
         _startAction->setEnabled(true);
@@ -58,15 +70,11 @@ void V4LCamera::configure() {
         }
         emit configurated();
     }
+    settingsDialogRequest = true;
 }
 
 int V4LCamera::exec() {
     char header [50];
-#ifdef _DEBUG_CAPTURE_THREADS
-    qDebug() << "[CAMERA_THREAD::V4L_CAMERA] - exec() - Device Name" << _deviceName;
-    qDebug() << "[CAMERA_THREAD::V4L_CAMERA] - exec() - frame size" << _fmt.fmt.pix.width << "x" << _fmt.fmt.pix.height;
-#endif //_DEBUG_CAPTURE_THREADS
-
     sprintf(header,"P6\n%d %d 255\n",_fmt.fmt.pix.width,_fmt.fmt.pix.height);
     unsigned char *dst_buf;
 #ifdef _DEBUG_CAPTURE_THREADS
@@ -165,6 +173,8 @@ void V4LCamera::openCaptureDevice() {
 }
 
 void V4LCamera::run() {
+    settingsDialogRequest = false;
+
     /// Enabling/Disabling Toolbar Buttons
     _startAction->setEnabled(false);
     _stopAction->setEnabled(true);

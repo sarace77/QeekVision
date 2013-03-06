@@ -46,7 +46,6 @@ RESOURCES += \
 
 FORMS += \
     v4lsettings.ui \
-    gigesettings.ui \
     qvdriverselect.ui
 
 ############################
