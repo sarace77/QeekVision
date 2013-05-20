@@ -4,8 +4,9 @@
 #include <QMainWindow>
 #include "camerathread.h"
 #include "camerawrapper.h"
-#include "qvdisplaywidget.h"
+//#include "qvdisplaywidget.h"
 #include "qvdriverselect.h"
+#include "qvglwidget.h"
 
 namespace Ui {
 class QeekDemoWindow;
@@ -18,7 +19,7 @@ private:
     Ui::QeekDemoWindow *ui;
     CameraThread *capture3ad;
     CameraWrapper *device;
-    QVDisplayWidget *imageWidget;
+    QVGLWidget  *imageWidget;
     QVDriverSelect *driverSelectDialog;
 
     Mat currentFrame;

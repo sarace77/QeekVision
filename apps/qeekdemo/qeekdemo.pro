@@ -1,4 +1,4 @@
-QT       += core gui
+QT       += core gui opengl
 
 LIBS += -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_video
 

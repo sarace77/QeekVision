@@ -1,3 +1,5 @@
+QT += opengl
+
 TEMPLATE = lib
 
 LIBS += -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_video
@@ -22,7 +24,8 @@ HEADERS += \
     qvdisplaywidget.h \
     qvdriverselect.h \
     histograms.h \
-    camerawrapper.h
+    camerawrapper.h \
+    qvglwidget.h
 
 SOURCES += \
     camerathread.cpp \
@@ -39,7 +42,8 @@ SOURCES += \
     qvdisplaywidget.cpp \
     qvdriverselect.cpp \
     histograms.cpp \
-    camerawrapper.cpp
+    camerawrapper.cpp \
+    qvglwidget.cpp
 
 RESOURCES += \
     resources.qrc

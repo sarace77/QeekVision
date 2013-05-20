@@ -3,6 +3,8 @@
 #include "v4lcamera.h"
 #include "ui_qeekdemowindow.h"
 
+#include <QGLWidget>
+
 #define HEIGHT_OFFSET 47
 
 QeekDemoWindow::QeekDemoWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::QeekDemoWindow) {
@@ -12,7 +14,8 @@ QeekDemoWindow::QeekDemoWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui
 
     capture3ad = device->selectedCamera;
 
-    imageWidget = new QVDisplayWidget(ui->centralwidget);
+//    imageWidget = new QVDisplayWidget(ui->centralwidget);
+    imageWidget = new QVGLWidget(ui->centralwidget);
 
     ui->actionSaveFrame->setEnabled(false);
     ui->menubar->addMenu(device->cameraMenu());
