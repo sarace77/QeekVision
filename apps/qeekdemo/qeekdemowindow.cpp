@@ -22,6 +22,9 @@ QeekDemoWindow::QeekDemoWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui
     ui->menubar->addMenu(device->captureMenu());
     ui->menubar->addMenu(device->frameFormatMenu());
     addToolBar(device->toolbar());
+
+    timer = new QTime();
+
     connect(device, SIGNAL(cameraTypeChanged()), this, SLOT(deviceChanged()));
     connect(capture3ad, SIGNAL(availableFrame()), this, SLOT(showFrame()));
 }
@@ -30,6 +33,7 @@ QeekDemoWindow::~QeekDemoWindow() {
     delete ui;
     device->deleteLater();
     delete imageWidget;
+    delete timer;
 }
 
 void QeekDemoWindow::on_actionSaveFrame_triggered() {
@@ -40,12 +44,16 @@ void QeekDemoWindow::on_actionSaveFrame_triggered() {
 }
 
 void QeekDemoWindow::showFrame() {
+    timer->start();
     ui->actionSaveFrame->setEnabled(true);
     this->resize(capture3ad->getWidth(), capture3ad->getHeight() + HEIGHT_OFFSET); // + capture3ad->toolBar()->size().height());
     currentFrame = capture3ad->getFrame();
     imageWidget->displayImage(currentFrame);
+    imageWidget->update();
     if (imageWidget->hasMouseTracking()) {
         ui->statusbar->showMessage(QString("Pos: (%1,%2)").arg(imageWidget->getMouseXPos()).arg(imageWidget->getMouseYPos()));
+    } else {
+        ui->statusbar->showMessage(QString("FPS: %1").arg(((float)1000.0)/(float)(timer->elapsed() + 1)));
     }
 }
 

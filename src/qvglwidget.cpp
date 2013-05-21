@@ -1,14 +1,13 @@
 #include "qvglwidget.h"
 #include "camerathread.h"
 
-#include <QDebug>
-
 #include <opencv2/highgui/highgui.hpp>
 
 QVGLWidget::QVGLWidget(QWidget *parent) : QGLWidget(QGLFormat(QGL::SampleBuffers), parent) {
     _mouseTracking = false;
     _pointerPos = QPoint(-1, -1);
     _textLabel = new QLabel(this);
+    resize(QSize(1,1));
 }
 
 void QVGLWidget::displayImage(Mat src) {
@@ -16,6 +15,7 @@ void QVGLWidget::displayImage(Mat src) {
     resizeGL(src.cols, src.rows);
     resize(glData.size());
     paintGL();
+    setMouseTracking(_mouseTracking);
 }
 
 void QVGLWidget::displayText(int x, int y, QString text) {
@@ -75,16 +75,13 @@ void QVGLWidget::mousePressEvent(QMouseEvent *event) {
         break;
     case Qt::LeftButton:
         _pointerPos = event->pos();
-        qDebug() << "left";
         break;
     case Qt::RightButton:
         _pointerPos = QPoint(-1,-1);
         _mouseTracking = false;
-        qDebug() << "right";
         break;
     case Qt::MiddleButton:
         _mouseTracking = !_mouseTracking;
-        qDebug() << "middle";
         break;
     default:
         break;

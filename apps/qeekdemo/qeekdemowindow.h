@@ -2,9 +2,10 @@
 #define QEEKDEMOWINDOW_H
 
 #include <QMainWindow>
+#include <QTime>
 #include "camerathread.h"
 #include "camerawrapper.h"
-//#include "qvdisplaywidget.h"
+#include "qvdisplaywidget.h"
 #include "qvdriverselect.h"
 #include "qvglwidget.h"
 
@@ -19,11 +20,13 @@ private:
     Ui::QeekDemoWindow *ui;
     CameraThread *capture3ad;
     CameraWrapper *device;
+//    QVDisplayWidget  *imageWidget;
     QVGLWidget  *imageWidget;
     QVDriverSelect *driverSelectDialog;
 
     Mat currentFrame;
 
+    QTime *timer;
 private slots:
     void deviceChanged();
     void on_actionSaveFrame_triggered();
