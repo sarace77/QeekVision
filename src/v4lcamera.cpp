@@ -50,12 +50,13 @@ void V4LCamera::configure() {
         _fmt = config;
         frameSizeList.clear();
     }
-    if (!isConfigurated() || settingsDialogRequest){
+    if (!isConfigurated()) {
 #ifdef _DEBUG_CAPTURE_THREADS
-        qDebug() << "[CAMERA_THREAD::V4L_CAMERA] - configure() - Config Dialog Invoked! - Current Configuration: (" << \
+        qDebug() << "[CAMERA_THREAD::V4L_CAMERA] - configure() - No Configuration, Config Dialog Invoked! - Current Configuration: (" << \
                       _deviceName << ", " << _fmt.fmt.pix.width << "x" << _fmt.fmt.pix.height << ")";
 #endif //_DEBUG_CAPTURE_THREADS
-//        settingsDialogRequest = false;
+//        qDebug() << "Status:" << _configEngine->getDialogStatus() << _configEngine->getDialogStatus();
+        settingsDialogRequest = false;
         _configEngine->resetConfiguration();
     }
     else {
@@ -65,11 +66,11 @@ void V4LCamera::configure() {
             frameSizeList = _configEngine->getSupportedFrameSizes();
             QString selectedSize = QString("%1x%2").arg(_configEngine->getConfiguration().configuration.fmt.pix.width).arg(_configEngine->getConfiguration().configuration.fmt.pix.height);
             frameSizeList.swap(frameSizeList.indexOf(selectedSize), 0);
-        } else {
-            _fmt = _configEngine->getConfiguration().configuration;
-        }
-        emit configurated();
-    }
+            } else {
+                _fmt = _configEngine->getConfiguration().configuration;
+            }
+            emit configurated();
+          }
     settingsDialogRequest = true;
 }
 

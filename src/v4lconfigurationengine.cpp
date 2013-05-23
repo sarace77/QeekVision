@@ -16,6 +16,7 @@ void _print_v4l2_format_struct(v4l2_format config1, v4l2_format config2) {
 V4LConfigurationEngine::V4LConfigurationEngine(QObject *parent) : QObject(parent) {
     _settingsDialog = new V4LSettings();
     CLEAR(_stored_configuration);
+    _dialogStatus = CONFIG_DIALOG_IDLE;
     settingsAccepted();
     _deviceName = _settingsDialog->getV4L2DeviceName();
     _stored_configuration = _settingsDialog->getV4L2Config();
@@ -152,23 +153,41 @@ CaptureDevice V4LConfigurationEngine::getConfiguration() {
     return device;
 }
 
+CONFIG_DIALOG_STATUS V4LConfigurationEngine::getDialogStatus() {
+    CONFIG_DIALOG_STATUS status = _dialogStatus;
+#ifdef _DEBUG_CONFIGURATION_OBJECTS
+    qDebug() << "[V4L_CONFIGURATION_ENGINE] - getDialogStatus()" << status << "(" << _dialogStatus << ")";;
+#endif //_DEBUG_CONFIGURATION_OBJECTS
+    return status;
+}
+
 QStringList V4LConfigurationEngine::getSupportedFrameSizes() {
     return _settingsDialog->supportedFrameRates;
+}
+
+void V4LConfigurationEngine::resetConfigDialogStatus() {
+    _dialogStatus = CONFIG_DIALOG_IDLE;
 }
 
 void V4LConfigurationEngine::resetConfiguration() {
 #ifdef _DEBUG_CONFIGURATION_OBJECTS
     qDebug() << "[V4L_CONFIGURATION_ENGINE] - resetConfiguration()";
 #endif //_DEBUG_CONFIGURATION_OBJECTS
-    _settingsDialog->show();
+    if (_dialogStatus == CONFIG_DIALOG_IDLE)
+        _settingsDialog->show();
+    _dialogStatus = CONFIG_DIALOG_UNKONWN;
 }
 
 void V4LConfigurationEngine::settingsAccepted() {
+    _dialogStatus = CONFIG_DIALOG_ACCEPTED;
     _deviceName = _settingsDialog->getV4L2DeviceName();
     struct v4l2_format config_format = _settingsDialog->getV4L2Config();
     configurationQuery(config_format);
+    _dialogStatus = CONFIG_DIALOG_ACCEPTED;
 }
 
 void V4LConfigurationEngine::settingsRejected() {
+    _dialogStatus = CONFIG_DIALOG_REJECTED;
     configurationQuery(_stored_configuration);
+    _dialogStatus = CONFIG_DIALOG_REJECTED;
 }

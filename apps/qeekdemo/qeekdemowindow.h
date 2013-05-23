@@ -1,8 +1,9 @@
 #ifndef QEEKDEMOWINDOW_H
 #define QEEKDEMOWINDOW_H
 
-#include <QMainWindow>
-#include <QTime>
+#include <QtCore>
+#include <QtGui>
+
 #include "camerathread.h"
 #include "camerawrapper.h"
 #include "qvdisplaywidget.h"
@@ -20,13 +21,14 @@ private:
     Ui::QeekDemoWindow *ui;
     CameraThread *capture3ad;
     CameraWrapper *device;
-//    QVDisplayWidget  *imageWidget;
-    QVGLWidget  *imageWidget;
+    QVDisplayWidget  *imageWidget_1;
+    QVGLWidget  *imageWidget_2;
     QVDriverSelect *driverSelectDialog;
+    QToolBar *widgetSelectorToolBar;
+    QRadioButton *openGlButton, *graphicSceneButton;
 
     Mat currentFrame;
 
-    QTime *timer;
 private slots:
     void deviceChanged();
     void on_actionSaveFrame_triggered();

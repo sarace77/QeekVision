@@ -12,8 +12,8 @@ QVGLWidget::QVGLWidget(QWidget *parent) : QGLWidget(QGLFormat(QGL::SampleBuffers
 
 void QVGLWidget::displayImage(Mat src) {
     glData = QGLWidget::convertToGLFormat(CameraThread::mat2qImage(src));
-    resizeGL(src.cols, src.rows);
-    resize(glData.size());
+    resizeGL(src.cols , src.rows);
+    setGeometry(0, 0, src.cols, src.rows);
     paintGL();
     setMouseTracking(_mouseTracking);
 }
@@ -37,7 +37,7 @@ bool QVGLWidget::isMouseTrackingEnabled() {
 
 
 void QVGLWidget::initializeGL() {
-    glDisable(GL_TEXTURE_2D);
+    glEnable(GL_TEXTURE_2D);
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_COLOR_MATERIAL);
     glEnable(GL_BLEND);
